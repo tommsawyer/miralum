@@ -2,7 +2,7 @@
 
 **miralum WebGL constructor**
 
-**bower install** для установки бутстрапа
+**bower install** для установки бутстрапа и альмонда
 
 **npm install** для установки галпа и кофескрипта
 
