@@ -462,12 +462,6 @@ define("../bower_components/almond/almond", function(){});
         this.camera.position.x = -30;
         this.camera.position.y = 40;
         this.camera.position.z = 30;
-        document.addEventListener('mousemove', (function(_this) {
-          return function(event) {
-            _this.camera.rotation.x -= event.movementX / 100;
-            return _this.camera.rotation.y -= event.movementY / 100;
-          };
-        })(this));
         this.camera.lookAt(this.scene.position);
         this.axes = new THREE.AxisHelper(20);
         spotlight = new THREE.AmbientLight(0xffffff);
@@ -603,12 +597,17 @@ define("../bower_components/almond/almond", function(){});
         this.material = material;
         Border.__super__.constructor.call(this, this.place, this.size, this.material);
         this.door = false;
+        this.angle = 0;
+        this.radius = 0.7;
       }
 
       Border.prototype.openDoor = function() {
         if (this.door) {
-          this.obj.rotateY(0.01);
-          if (this.obj.rotation.y > Math.PI / 2) {
+          this.obj.rotation.y -= Math.PI / 180 * 2;
+          this.obj.position.x -= this.radius / 2 * Math.cos(this.angle);
+          this.obj.position.z -= this.radius / 2 * Math.sin(this.angle);
+          this.angle += Math.PI / 180 * 2;
+          if (Math.abs(this.obj.rotation.y) > Math.PI / 2) {
             return this.door = false;
           }
         }
@@ -635,8 +634,8 @@ define("../bower_components/almond/almond", function(){});
         this.borders = {
           'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial),
           'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial),
-          'topBorder': new Border(new Utils.place(this.place.x, this.place.y + this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
-          'bottomBorder': new Border(new Utils.place(this.place.x, this.place.y - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
+          'topBorder': new Border(new Utils.place(this.place.x, this.place.y + this.size.y / 2 - this.borderWidth / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
+          'bottomBorder': new Border(new Utils.place(this.place.x, this.place.y - this.size.y / 2 + this.borderWidth / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
           'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial),
           'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial)
         };
@@ -668,7 +667,7 @@ define("../bower_components/almond/almond", function(){});
 
 (function() {
   require(['engine', 'physicalObject', 'utils', 'materials', 'showcase'], function(Engine, physicalObject, Utils, Materials, ShowCase) {
-    var engine, i, obj;
+    var engine, i, obj, obj2;
     engine = new Engine;
     i = 20;
     obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.place(10, 60, 20), Materials.glass);
@@ -676,15 +675,19 @@ define("../bower_components/almond/almond", function(){});
     engine.scene.add(obj.addShelf(15));
     engine.scene.add(obj.addShelf(30));
     engine.scene.add(obj.addShelf(45));
-    obj = new ShowCase(new Utils.place(0, -30, 0), new Utils.place(10, 10, 20), Materials.wood);
+    obj.borders["leftBorder"].door = true;
+    engine.addEventListener("render", function() {
+      return obj.borders["leftBorder"].openDoor();
+    });
+    obj2 = new ShowCase(new Utils.place(0, -30, 0), new Utils.place(10, 10, 20), Materials.wood);
     engine.addToScene(obj);
     return document.getElementById('addShowCase').onclick = function() {
-      obj = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
+      obj2 = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
       engine.addToScene(obj);
       engine.scene.add(obj.addShelf(15));
       engine.scene.add(obj.addShelf(30));
       engine.scene.add(obj.addShelf(45));
-      obj = new ShowCase(new Utils.place(0, -30, i), new Utils.place(10, 10, 20), Materials.wood);
+      obj2 = new ShowCase(new Utils.place(0, -30, i), new Utils.place(10, 10, 20), Materials.wood);
       engine.addToScene(obj);
       return i += 20;
     };

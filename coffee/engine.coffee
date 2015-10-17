@@ -25,9 +25,9 @@ define [], ->
 			@camera.position.y = 40
 			@camera.position.z = 30
 
-			document.addEventListener 'mousemove', (event) =>
-				@camera.rotation.x -= event.movementX / 100
-				@camera.rotation.y -= event.movementY / 100
+			# document.addEventListener 'mousemove', (event) =>
+			# 	@camera.rotation.x -= event.movementX / 100
+			# 	@camera.rotation.y -= event.movementY / 100
 
 			@camera.lookAt @scene.position
 

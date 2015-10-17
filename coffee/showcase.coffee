@@ -14,11 +14,11 @@ define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physic
 					new Utils.size(@borderWidth, @size.y, @size.z),
 					@borderMaterial),
 				'topBorder': new Border(
-					new Utils.place(@place.x, @place.y + @size.y / 2, @place.z ), 
+					new Utils.place(@place.x, @place.y + @size.y / 2 - @borderWidth / 2, @place.z ), 
 					new Utils.size(@size.x, @borderWidth, @size.z),
 					@borderMaterial),
 				'bottomBorder': new Border(
-					new Utils.place(@place.x, @place.y - @size.y / 2, @place.z ), 
+					new Utils.place(@place.x, @place.y - @size.y / 2 + @borderWidth / 2, @place.z ), 
 					new Utils.size(@size.x, @borderWidth, @size.z),
 					@borderMaterial),
 				'backBorder': new Border(
