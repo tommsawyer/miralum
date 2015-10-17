@@ -651,15 +651,17 @@ define("../bower_components/almond/almond", function(){});
         Border.__super__.constructor.call(this, this.place, this.size, this.material);
         this.door = false;
         this.angle = 0;
-        this.radius = 0.7;
+        this.width = this.size.z;
+        this.elementaryAngle = 2;
+        this.radius = this.width / (90 / this.elementaryAngle) * (Math.PI / 2);
       }
 
       Border.prototype.openDoor = function() {
         if (this.door) {
-          this.mesh.rotation.y -= Math.PI / 180 * 2;
+          this.mesh.rotation.y -= Math.PI / 180 * this.elementaryAngle;
           this.mesh.position.x -= this.radius / 2 * Math.cos(this.angle);
           this.mesh.position.z -= this.radius / 2 * Math.sin(this.angle);
-          this.angle += Math.PI / 180 * 2;
+          this.angle += Math.PI / 180 * this.elementaryAngle;
           if (Math.abs(this.mesh.rotation.y) > Math.PI / 2) {
             return this.door = false;
           }
