@@ -445,64 +445,21 @@ define("../bower_components/almond/almond", function(){});
       function Engine() {
         this.nextCamera = bind(this.nextCamera, this);
         this.addToScene = bind(this.addToScene, this);
-        this._initialize();
-      }
-
-      Engine.prototype._initialize = function() {
-        var spotlight;
         this.event = new CustomEvent('render', {});
-        this.scene = new THREE.Scene;
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer;
-        this.renderer.setClearColor(0xEEEEEE);
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(this.renderer.domElement);
-        this.camera.position.x = -30;
-        this.camera.position.y = 40;
-        this.camera.position.z = 30;
-        this.camera.lookAt(this.scene.position);
-        this.axes = new THREE.AxisHelper(20);
-        spotlight = new THREE.AmbientLight(0xffffff);
-        spotlight.position.set(-30, 30, -10);
-        this.scene.add(spotlight);
-        spotlight.position.set(32, 30, 0);
-        this.scene.add(spotlight);
-        this.scene.add(this.axes);
-        this.cameraDistance = {
-          x: 50,
-          y: 50,
-          z: 50
-        };
-        this.cameraPositionValues = {
-          'LeftFront': new THREE.Vector3(-this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z),
-          'Front': new THREE.Vector3(0, this.cameraDistance.y, this.cameraDistance.z),
-          'RightFront': new THREE.Vector3(this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z)
-        };
-        this.cameraPositions = [this.cameraPositionValues.LeftFront, this.cameraPositionValues.Front, this.cameraPositionValues.RightFront];
-        this.currentCamera = 0;
-        document.addEventListener('click', (function(_this) {
-          return function(event) {
-            _this.nextCamera();
-            return _this.camera.lookAt(_this.scene.position);
-          };
-        })(this));
-        return this.run();
-      };
-
-      Engine.prototype.run = function() {
-        var renderScene;
-        renderScene = (function(_this) {
-          return function() {
-            _this.dispatchEvent(_this.event);
-            requestAnimationFrame(renderScene);
-            return _this.renderer.render(_this.scene, _this.camera);
-          };
-        })(this);
-        return renderScene();
-      };
+        this._initialize();
+        this._initializeCameras();
+        this._initializeSpotilights();
+        this._addAxes(50);
+        this.run();
+      }
 
       Engine.prototype.addToScene = function(obj) {
         if (obj.addToScene instanceof Function) {
+          obj.addEventListener('newObject', (function(_this) {
+            return function(event) {
+              return _this.addToScene(event.detail);
+            };
+          })(this));
           obj.addToScene((function(_this) {
             return function(object) {
               return _this.scene.add(object);
@@ -521,7 +478,62 @@ define("../bower_components/almond/almond", function(){});
         }
         this.camera.position.x = this.cameraPositions[this.currentCamera].x;
         this.camera.position.y = this.cameraPositions[this.currentCamera].y;
-        return this.camera.position.z = this.cameraPositions[this.currentCamera].z;
+        this.camera.position.z = this.cameraPositions[this.currentCamera].z;
+        return this.camera.lookAt(this.scene.position);
+      };
+
+      Engine.prototype.run = function() {
+        var renderScene;
+        renderScene = (function(_this) {
+          return function() {
+            _this.dispatchEvent(_this.event);
+            requestAnimationFrame(renderScene);
+            return _this.renderer.render(_this.scene, _this.camera);
+          };
+        })(this);
+        return renderScene();
+      };
+
+      Engine.prototype._initialize = function() {
+        this.scene = new THREE.Scene;
+        this.renderer = new THREE.WebGLRenderer;
+        this.renderer.setClearColor(0xEEEEEE);
+        this.renderer.setSize(document.body.clientWidth, document.body.clientHeight);
+        return document.body.appendChild(this.renderer.domElement);
+      };
+
+      Engine.prototype._initializeSpotilights = function() {
+        var spotlight;
+        spotlight = new THREE.AmbientLight(0xffffff);
+        spotlight.position.set(-30, 30, -10);
+        this.scene.add(spotlight);
+        spotlight.position.set(32, 30, 0);
+        return this.scene.add(spotlight);
+      };
+
+      Engine.prototype._initializeCameras = function() {
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.x = -30;
+        this.camera.position.y = 40;
+        this.camera.position.z = 30;
+        this.camera.lookAt(this.scene.position);
+        this.cameraDistance = {
+          x: 50,
+          y: 50,
+          z: 50
+        };
+        this.cameraPositionValues = {
+          'LeftFront': new THREE.Vector3(-this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z),
+          'Front': new THREE.Vector3(0, this.cameraDistance.y, this.cameraDistance.z),
+          'RightFront': new THREE.Vector3(this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z)
+        };
+        this.cameraPositions = [this.cameraPositionValues.LeftFront, this.cameraPositionValues.Front, this.cameraPositionValues.RightFront];
+        return this.currentCamera = 0;
+      };
+
+      Engine.prototype._addAxes = function(size) {
+        this.axes = new THREE.AxisHelper(size);
+        return this.scene.add(this.axes);
       };
 
       return Engine;
@@ -556,7 +568,8 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
-  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
   define('physicalObject',['materials'], function(Materials) {
@@ -569,16 +582,29 @@ define("../bower_components/almond/almond", function(){});
         this.place = place;
         this.size = size;
         this.material = material;
+        this.addChildrenObject = bind(this.addChildrenObject, this);
         this.showCaseGeometry = new THREE.BoxGeometry(this.size.x, this.size.y, this.size.z);
         showCaseMaterial = this.material;
-        this.obj = new THREE.Mesh(this.showCaseGeometry, showCaseMaterial);
-        this.obj.position.x = this.place.x;
-        this.obj.position.y = this.place.y;
-        this.obj.position.z = this.place.z;
+        this.mesh = new THREE.Mesh(this.showCaseGeometry, showCaseMaterial);
+        this.mesh.position.x = this.place.x;
+        this.mesh.position.y = this.place.y;
+        this.mesh.position.z = this.place.z;
       }
 
       PhysicalObject.prototype.addToScene = function(callback) {
-        return callback(this.obj)();
+        return callback(this.mesh)();
+      };
+
+      PhysicalObject.prototype.addChildrenObject = function(object) {
+        var event;
+        event = new CustomEvent('newObject', {
+          detail: object
+        });
+        return this.dispatchEvent(event);
+      };
+
+      PhysicalObject.prototype.getMesh = function() {
+        return this.mesh;
       };
 
       return PhysicalObject;
@@ -630,11 +656,11 @@ define("../bower_components/almond/almond", function(){});
 
       Border.prototype.openDoor = function() {
         if (this.door) {
-          this.obj.rotation.y -= Math.PI / 180 * 2;
-          this.obj.position.x -= this.radius / 2 * Math.cos(this.angle);
-          this.obj.position.z -= this.radius / 2 * Math.sin(this.angle);
+          this.mesh.rotation.y -= Math.PI / 180 * 2;
+          this.mesh.position.x -= this.radius / 2 * Math.cos(this.angle);
+          this.mesh.position.z -= this.radius / 2 * Math.sin(this.angle);
           this.angle += Math.PI / 180 * 2;
-          if (Math.abs(this.obj.rotation.y) > Math.PI / 2) {
+          if (Math.abs(this.mesh.rotation.y) > Math.PI / 2) {
             return this.door = false;
           }
         }
@@ -648,10 +674,16 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
   define('showcase',['utils', 'border', 'physicalObject', 'materials'], function(Utils, Border, physicalObject, Materials) {
     var ShowCase;
-    return ShowCase = (function() {
+    return ShowCase = (function(superClass) {
+      extend(ShowCase, superClass);
+
       function ShowCase(place, size, material) {
+        var borderName, i, len, ref;
         this.place = place;
         this.size = size;
         this.material = material;
@@ -666,56 +698,57 @@ define("../bower_components/almond/almond", function(){});
           'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial),
           'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial)
         };
+        this.mesh = new THREE.Object3D;
+        ref = Object.keys(this.borders);
+        for (i = 0, len = ref.length; i < len; i++) {
+          borderName = ref[i];
+          this.mesh.add(this.borders[borderName].mesh);
+        }
       }
 
       ShowCase.prototype.addToScene = function(callback) {
-        var borderName, i, len, ref, results;
-        ref = Object.keys(this.borders);
-        results = [];
-        for (i = 0, len = ref.length; i < len; i++) {
-          borderName = ref[i];
-          results.push(callback(this.borders[borderName].obj));
-        }
-        return results;
+        return callback(this.mesh);
+      };
+
+      ShowCase.prototype.getMesh = function() {
+        return this.mesh;
       };
 
       ShowCase.prototype.addShelf = function(height) {
         this.shelfs.push(new Border(new Utils.place(this.place.x, height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.wood));
-        console.log(Materials);
-        return this.shelfs[this.shelfs.length - 1].obj;
+        return this.addChildrenObject.call(this, this.shelfs[this.shelfs.length - 1].mesh);
       };
 
       return ShowCase;
 
-    })();
+    })(physicalObject);
   });
 
 }).call(this);
 
 (function() {
   require(['engine', 'physicalObject', 'utils', 'materials', 'showcase'], function(Engine, physicalObject, Utils, Materials, ShowCase) {
-    var engine, i, obj, obj2;
+    var engine, i, obj;
     engine = new Engine;
     i = 20;
     obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.place(10, 60, 20), Materials.glass);
     engine.addToScene(obj);
-    engine.scene.add(obj.addShelf(15));
-    engine.scene.add(obj.addShelf(30));
-    engine.scene.add(obj.addShelf(45));
+    obj.addShelf(15);
+    obj.addShelf(30);
+    obj.addShelf(45);
     obj.borders["leftBorder"].door = true;
     engine.addEventListener("render", function() {
       return obj.borders["leftBorder"].openDoor();
     });
-    obj2 = new ShowCase(new Utils.place(0, -30, 0), new Utils.place(10, 10, 20), Materials.wood);
-    engine.addToScene(obj);
+    document.getElementById('changeCamera').onclick = function() {
+      return engine.nextCamera();
+    };
     return document.getElementById('addShowCase').onclick = function() {
-      obj2 = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
+      obj = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
       engine.addToScene(obj);
-      engine.scene.add(obj.addShelf(15));
-      engine.scene.add(obj.addShelf(30));
-      engine.scene.add(obj.addShelf(45));
-      obj2 = new ShowCase(new Utils.place(0, -30, i), new Utils.place(10, 10, 20), Materials.wood);
-      engine.addToScene(obj);
+      obj.addShelf(15);
+      obj.addShelf(30);
+      obj.addShelf(45);
       return i += 20;
     };
   });

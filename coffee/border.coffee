@@ -7,12 +7,11 @@ define ['physicalObject'], (physicalObject) ->
 			@radius = 0.7
 		openDoor: ->
 			if @door
-				@obj.rotation.y-=Math.PI/180* 2
-
-				@obj.position.x -= @radius/2 * Math.cos(@angle)
-				@obj.position.z -= @radius/2 * Math.sin(@angle)
+				@mesh.rotation.y-=Math.PI/180* 2
+				@mesh.position.x -= @radius/2 * Math.cos(@angle)
+				@mesh.position.z -= @radius/2 * Math.sin(@angle)
+				
 				@angle += Math.PI/180* 2
-				#@showCaseGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(@size.x , @size.y , @size.z))
-				@door = false if Math.abs(@obj.rotation.y) > Math.PI / 2
+				@door = false if Math.abs(@mesh.rotation.y) > Math.PI / 2
 
 

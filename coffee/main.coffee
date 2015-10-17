@@ -4,28 +4,25 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine,
 	obj = new ShowCase new Utils.place(0,0,0), new Utils.place(10,60,20), Materials.glass
 	engine.addToScene obj
 
-	engine.scene.add(obj.addShelf 15)
-	engine.scene.add(obj.addShelf 30)
-	engine.scene.add(obj.addShelf 45)
+	obj.addShelf 15
+	obj.addShelf 30
+	obj.addShelf 45
 
 	obj.borders["leftBorder"].door = on
+
 	engine.addEventListener("render", ->
 			do obj.borders["leftBorder"].openDoor
 		)
 
-	obj2 = new ShowCase new Utils.place(0,-30,0), new Utils.place(10,10,20), Materials.wood
-	engine.addToScene obj
+	document.getElementById('changeCamera').onclick = ->
+		do engine.nextCamera
 
 	document.getElementById('addShowCase').onclick = ->
-		obj2 = new ShowCase new Utils.place(0,0,i), new Utils.place(10,60,20), Materials.glass
+		obj = new ShowCase new Utils.place(0,0,i), new Utils.place(10,60,20), Materials.glass
 		engine.addToScene obj
 
-		engine.scene.add(obj.addShelf 15)
-		engine.scene.add(obj.addShelf 30)
-		engine.scene.add(obj.addShelf 45)
+		obj.addShelf 15
+		obj.addShelf 30
+		obj.addShelf 45
 
-		obj2 = new ShowCase new Utils.place(0,-30,i), new Utils.place(10,10,20), Materials.wood
-		engine.addToScene obj		
 		i+=20
-	
-	

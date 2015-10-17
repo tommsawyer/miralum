@@ -1,5 +1,5 @@
 define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physicalObject, Materials) ->
-	class ShowCase 
+	class ShowCase extends physicalObject
 		constructor: (@place, @size, @material) ->
 			@borderWidth = 0.5
 			@shelfs = []
@@ -30,11 +30,14 @@ define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physic
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial),
 			}
-			
+
+			@mesh = new THREE.Object3D
+			@mesh.add @borders[borderName].mesh for borderName in Object.keys @borders
 
 		addToScene: (callback) ->
-			 for borderName in Object.keys @borders
-			 	callback @borders[borderName].obj
+			 callback @mesh
+		getMesh: ->
+			@mesh
 
 		addShelf: (height) ->
 			@shelfs.push new Border(
@@ -42,5 +45,4 @@ define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physic
 					new Utils.size(@size.x, @borderWidth, @size.z),
 					Materials.wood
 				)
-			console.log Materials
-			return @shelfs[@shelfs.length - 1].obj
+			@addChildrenObject.call @, @shelfs[@shelfs.length - 1].mesh

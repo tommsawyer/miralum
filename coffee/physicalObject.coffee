@@ -3,10 +3,20 @@ define ['materials'], (Materials) ->
 		constructor: (@place, @size, @material) ->
 			@showCaseGeometry = new THREE.BoxGeometry @size.x, @size.y, @size.z
 			showCaseMaterial = @material
-			@obj = new THREE.Mesh @showCaseGeometry, showCaseMaterial
-			@obj.position.x = @place.x
-			@obj.position.y = @place.y
-			@obj.position.z = @place.z
+
+			@mesh = new THREE.Mesh @showCaseGeometry, showCaseMaterial
+			@mesh.position.x = @place.x
+			@mesh.position.y = @place.y
+			@mesh.position.z = @place.z
 		addToScene: (callback) ->
-			do callback @obj
+			do callback @mesh
+
+		addChildrenObject: (object)=>
+			event = new CustomEvent 'newObject', {
+				detail: object
+			}
+			@dispatchEvent event
+
+		getMesh: ->
+			@mesh
 			

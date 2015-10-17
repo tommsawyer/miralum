@@ -6,13 +6,11 @@ define ['engine'], (Engine) ->
 	{
 		'glass' :  new THREE.MeshLambertMaterial({
 			map: glassTexture,
-			#color: 0x0000cc,
 			opacity: 0.3,
 			transparent: on,
 		}),
 		'panel' :  new THREE.MeshLambertMaterial({
 			map: glassTexture,
-
 		}),
 		'wood' :  new THREE.MeshLambertMaterial({
 			map: woodTexture,
