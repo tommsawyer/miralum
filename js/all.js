@@ -443,6 +443,7 @@ define("../bower_components/almond/almond", function(){});
       extend(Engine, superClass);
 
       function Engine() {
+        this.nextCamera = bind(this.nextCamera, this);
         this.addToScene = bind(this.addToScene, this);
         this._initialize();
       }
@@ -456,9 +457,6 @@ define("../bower_components/almond/almond", function(){});
         this.renderer.setClearColor(0xEEEEEE);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
-        this.renderer.domElement.onclick = function(event) {
-          return console.log(event);
-        };
         this.camera.position.x = -30;
         this.camera.position.y = 40;
         this.camera.position.z = 30;
@@ -470,6 +468,24 @@ define("../bower_components/almond/almond", function(){});
         spotlight.position.set(32, 30, 0);
         this.scene.add(spotlight);
         this.scene.add(this.axes);
+        this.cameraDistance = {
+          x: 50,
+          y: 50,
+          z: 50
+        };
+        this.cameraPositionValues = {
+          'LeftFront': new THREE.Vector3(-this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z),
+          'Front': new THREE.Vector3(0, this.cameraDistance.y, this.cameraDistance.z),
+          'RightFront': new THREE.Vector3(this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z)
+        };
+        this.cameraPositions = [this.cameraPositionValues.LeftFront, this.cameraPositionValues.Front, this.cameraPositionValues.RightFront];
+        this.currentCamera = 0;
+        document.addEventListener('click', (function(_this) {
+          return function(event) {
+            _this.nextCamera();
+            return _this.camera.lookAt(_this.scene.position);
+          };
+        })(this));
         return this.run();
       };
 
@@ -495,6 +511,17 @@ define("../bower_components/almond/almond", function(){});
           return;
         }
         return this.scene.add(obj);
+      };
+
+      Engine.prototype.nextCamera = function() {
+        if (this.currentCamera < this.cameraPositions.length - 1) {
+          this.currentCamera++;
+        } else {
+          this.currentCamera = 0;
+        }
+        this.camera.position.x = this.cameraPositions[this.currentCamera].x;
+        this.camera.position.y = this.cameraPositions[this.currentCamera].y;
+        return this.camera.position.z = this.cameraPositions[this.currentCamera].z;
       };
 
       return Engine;

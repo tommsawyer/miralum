@@ -19,11 +19,12 @@ define [], ->
 			@renderer.setClearColor 0xEEEEEE
 			@renderer.setSize window.innerWidth, window.innerHeight
 			document.body.appendChild @renderer.domElement
-			@renderer.domElement.onclick = (event) ->
-				console.log event
+			# @renderer.domElement.onclick = (event) ->
+			# 	console.log event
 			@camera.position.x = -30
 			@camera.position.y = 40
 			@camera.position.z = 30
+			#@camAngle = 0;
 
 			# document.addEventListener 'mousemove', (event) =>
 			# 	@camera.rotation.x -= event.movementX / 100
@@ -39,6 +40,32 @@ define [], ->
 			@scene.add spotlight
 			@scene.add @axes
 			#@renderer.render @scene, @camera
+
+			@cameraDistance = {
+				x: 50,
+				y: 50,
+				z: 50
+			}
+
+			@cameraPositionValues = {
+				'LeftFront': new THREE.Vector3(-@cameraDistance.x, @cameraDistance.y, @cameraDistance.z),
+				'Front': new THREE.Vector3(0, @cameraDistance.y, @cameraDistance.z),
+				'RightFront': new THREE.Vector3(@cameraDistance.x, @cameraDistance.y, @cameraDistance.z),
+			}
+
+			@cameraPositions = [
+				@cameraPositionValues.LeftFront,
+				@cameraPositionValues.Front,
+				@cameraPositionValues.RightFront
+			]
+
+			@currentCamera = 0
+
+			document.addEventListener('click', (event) =>
+				do @nextCamera
+				@camera.lookAt @scene.position
+			)
+			
 			do @run
 
 		run: ->
@@ -54,4 +81,10 @@ define [], ->
 					@scene.add object
 				return	
 			@scene.add obj
+
+		nextCamera: =>
+			if @currentCamera < @cameraPositions.length - 1 then @currentCamera++ else  @currentCamera = 0
+			@camera.position.x = @cameraPositions[@currentCamera].x
+			@camera.position.y = @cameraPositions[@currentCamera].y
+			@camera.position.z = @cameraPositions[@currentCamera].z
 				
