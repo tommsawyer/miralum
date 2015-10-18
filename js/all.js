@@ -460,6 +460,11 @@ define("../bower_components/almond/almond", function(){});
               return _this.addToScene(event.detail);
             };
           })(this));
+          obj.addEventListener('removeObject', (function(_this) {
+            return function(event) {
+              return _this.removeFromScene(event.detail);
+            };
+          })(this));
           obj.addToScene((function(_this) {
             return function(object) {
               return _this.scene.add(object);
@@ -468,6 +473,10 @@ define("../bower_components/almond/almond", function(){});
           return;
         }
         return this.scene.add(obj);
+      };
+
+      Engine.prototype.removeFromScene = function(obj) {
+        return this.scene.remove(obj);
       };
 
       Engine.prototype.nextCamera = function() {
@@ -561,8 +570,49 @@ define("../bower_components/almond/almond", function(){});
       }),
       'wood': new THREE.MeshLambertMaterial({
         map: woodTexture
+      }),
+      'line': new THREE.LineBasicMaterial({
+        color: 0x000000
       })
     };
+  });
+
+}).call(this);
+
+(function() {
+  define('dimension',['physicalObject', 'materials'], function(physicalObject, Materials) {
+    var Dimension;
+    return Dimension = (function() {
+      function Dimension(mesh, correction) {
+        var LeftCorner, bottomBackCorner, bottomFrontCorner, bottomLeftCorner, bottomRightCorner, sizes, topLeftCorner;
+        this.mesh = new THREE.Object3D;
+        sizes = (new THREE.Box3().setFromObject(mesh)).size();
+        bottomLeftCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y - sizes.y / 2, mesh.position.z - sizes.z / 2);
+        bottomRightCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y - sizes.y / 2, mesh.position.z + sizes.z / 2);
+        topLeftCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y + sizes.y / 2, mesh.position.z - sizes.z / 2);
+        LeftCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y + sizes.y / 2, mesh.position.z - sizes.z / 2);
+        bottomBackCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2, mesh.position.y - sizes.y / 2, mesh.position.z + sizes.z / 2 + correction);
+        bottomFrontCorner = new THREE.Vector3(mesh.position.x + sizes.x / 2, mesh.position.y - sizes.y / 2, mesh.position.z + sizes.z / 2 + correction);
+        this.mesh.add(this.createLine(bottomLeftCorner, bottomRightCorner));
+        this.mesh.add(this.createLine(topLeftCorner, bottomLeftCorner));
+        this.mesh.add(this.createLine(bottomBackCorner, bottomFrontCorner));
+      }
+
+      Dimension.prototype.createLine = function(from, to) {
+        var geometry;
+        geometry = new THREE.Geometry;
+        geometry.vertices.push(new THREE.Vector3(from.x, from.y, from.z));
+        geometry.vertices.push(new THREE.Vector3(to.x, to.y, to.z));
+        return new THREE.Line(geometry, Materials.line);
+      };
+
+      Dimension.prototype.sceneSizeToReal = function(size) {
+        return size;
+      };
+
+      return Dimension;
+
+    })();
   });
 
 }).call(this);
@@ -572,7 +622,7 @@ define("../bower_components/almond/almond", function(){});
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('physicalObject',['materials'], function(Materials) {
+  define('physicalObject',['materials', 'dimension'], function(Materials, Dimension) {
     var PhysicalObject;
     return PhysicalObject = (function(superClass) {
       extend(PhysicalObject, superClass);
@@ -582,7 +632,9 @@ define("../bower_components/almond/almond", function(){});
         this.place = place;
         this.size = size;
         this.material = material;
+        this.removeChildrenObject = bind(this.removeChildrenObject, this);
         this.addChildrenObject = bind(this.addChildrenObject, this);
+        this.dimension = null;
         this.showCaseGeometry = new THREE.BoxGeometry(this.size.x, this.size.y, this.size.z);
         showCaseMaterial = this.material;
         this.mesh = new THREE.Mesh(this.showCaseGeometry, showCaseMaterial);
@@ -601,6 +653,24 @@ define("../bower_components/almond/almond", function(){});
           detail: object
         });
         return this.dispatchEvent(event);
+      };
+
+      PhysicalObject.prototype.removeChildrenObject = function(object) {
+        var event;
+        event = new CustomEvent('removeObject', {
+          detail: object
+        });
+        return this.dispatchEvent(event);
+      };
+
+      PhysicalObject.prototype.toggleDimensions = function() {
+        if (!this.dimension) {
+          this.dimension = new Dimension(this.mesh, 2);
+          return this.addChildrenObject(this.dimension.mesh);
+        } else {
+          this.removeChildrenObject(this.dimension.mesh);
+          return this.dimension = null;
+        }
       };
 
       PhysicalObject.prototype.getMesh = function() {
@@ -679,22 +749,22 @@ define("../bower_components/almond/almond", function(){});
   var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('showcase',['utils', 'border', 'physicalObject', 'materials'], function(Utils, Border, physicalObject, Materials) {
+  define('showcase',['utils', 'border', 'physicalObject', 'materials', 'dimension'], function(Utils, Border, physicalObject, Materials, Dimension) {
     var ShowCase;
     return ShowCase = (function(superClass) {
       extend(ShowCase, superClass);
 
-      function ShowCase(place, size, material) {
+      function ShowCase(place, size, borderMaterial, backBorderMaterial) {
         var borderName, i, len, ref;
         this.place = place;
         this.size = size;
-        this.material = material;
+        this.borderMaterial = borderMaterial;
+        this.backBorderMaterial = backBorderMaterial;
         this.borderWidth = 0.5;
         this.shelfs = [];
-        this.borderMaterial = this.material;
         this.borders = {
           'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial),
-          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial),
+          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.backBorderMaterial),
           'topBorder': new Border(new Utils.place(this.place.x, this.place.y + this.size.y / 2 - this.borderWidth / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
           'bottomBorder': new Border(new Utils.place(this.place.x, this.place.y - this.size.y / 2 + this.borderWidth / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
           'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial),
@@ -710,10 +780,6 @@ define("../bower_components/almond/almond", function(){});
 
       ShowCase.prototype.addToScene = function(callback) {
         return callback(this.mesh);
-      };
-
-      ShowCase.prototype.getMesh = function() {
-        return this.mesh;
       };
 
       ShowCase.prototype.addShelf = function(height) {
@@ -733,17 +799,22 @@ define("../bower_components/almond/almond", function(){});
     var engine, i, obj;
     engine = new Engine;
     i = 20;
-    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.place(10, 60, 20), Materials.glass);
+    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.place(10, 60, 20), Materials.glass, Materials.wood);
     engine.addToScene(obj);
     obj.addShelf(15);
     obj.addShelf(30);
     obj.addShelf(45);
     obj.borders["leftBorder"].door = true;
-    engine.addEventListener("render", function() {
-      return obj.borders["leftBorder"].openDoor();
-    });
     document.getElementById('changeCamera').onclick = function() {
       return engine.nextCamera();
+    };
+    document.getElementById('toggleDimensions').onclick = function() {
+      return obj.toggleDimensions();
+    };
+    document.getElementById('addShelf').onclick = function() {
+      var height;
+      height = document.getElementById('shelfHeight').value;
+      return obj.addShelf(height);
     };
     return document.getElementById('addShowCase').onclick = function() {
       obj = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);

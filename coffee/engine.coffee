@@ -18,11 +18,15 @@ define [], ->
 			if obj.addToScene instanceof Function
 				obj.addEventListener 'newObject', (event) =>
 					@addToScene event.detail
+				obj.addEventListener 'removeObject', (event) =>
+					@removeFromScene event.detail
 				obj.addToScene (object) =>
 					@scene.add object
 				return	
 			@scene.add obj
 
+		removeFromScene: (obj) ->
+			@scene.remove obj
 		nextCamera: =>
 			if @currentCamera < @cameraPositions.length - 1 then @currentCamera++ else  @currentCamera = 0
 			@camera.position.x = @cameraPositions[@currentCamera].x

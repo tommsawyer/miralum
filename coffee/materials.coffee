@@ -14,5 +14,8 @@ define ['engine'], (Engine) ->
 		}),
 		'wood' :  new THREE.MeshLambertMaterial({
 			map: woodTexture,
-		})
+		}),
+		'line': new THREE.LineBasicMaterial({
+			color: 0x000000
+		}),
 	}

@@ -1,9 +1,8 @@
-define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physicalObject, Materials) ->
+define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, Border, physicalObject, Materials, Dimension) ->
 	class ShowCase extends physicalObject
-		constructor: (@place, @size, @material) ->
+		constructor: (@place, @size, @borderMaterial, @backBorderMaterial) ->
 			@borderWidth = 0.5
 			@shelfs = []
-			@borderMaterial = @material
 			@borders = {
 				'leftBorder': new Border(
 					new Utils.place(@place.x - @size.x / 2, @place.y, @place.z ), 
@@ -12,7 +11,7 @@ define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physic
 				'rightBorder': new Border(
 					new Utils.place(@place.x + @size.x / 2, @place.y, @place.z ), 
 					new Utils.size(@borderWidth, @size.y, @size.z),
-					@borderMaterial),
+					@backBorderMaterial),
 				'topBorder': new Border(
 					new Utils.place(@place.x, @place.y + @size.y / 2 - @borderWidth / 2, @place.z ), 
 					new Utils.size(@size.x, @borderWidth, @size.z),
@@ -36,8 +35,6 @@ define ['utils', 'border', 'physicalObject','materials'], (Utils, Border, physic
 
 		addToScene: (callback) ->
 			 callback @mesh
-		getMesh: ->
-			@mesh
 
 		addShelf: (height) ->
 			@shelfs.push new Border(
