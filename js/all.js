@@ -754,27 +754,55 @@ define("../bower_components/almond/almond", function(){});
     return ShowCase = (function(superClass) {
       extend(ShowCase, superClass);
 
-      function ShowCase(place, size, borderMaterial, backBorderMaterial) {
-        var borderName, i, len, ref;
+      function ShowCase(place, size, borderMaterial, backBorderMaterial, bottomStorageHeigth, topStorageHeight, storageMaterial) {
+        var borderName, i, ind2, j, k, len, len1, len2, ref, ref1, ref2, storageName;
         this.place = place;
         this.size = size;
         this.borderMaterial = borderMaterial;
         this.backBorderMaterial = backBorderMaterial;
+        this.bottomStorageHeigth = bottomStorageHeigth;
+        this.topStorageHeight = topStorageHeight;
+        this.storageMaterial = storageMaterial;
         this.borderWidth = 0.5;
         this.shelfs = [];
         this.borders = {
           'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial),
           'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.backBorderMaterial),
-          'topBorder': new Border(new Utils.place(this.place.x, this.place.y + this.size.y / 2 - this.borderWidth / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
-          'bottomBorder': new Border(new Utils.place(this.place.x, this.place.y - this.size.y / 2 + this.borderWidth / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.borderMaterial),
           'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial),
           'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial)
+        };
+        this.bottomStoragePlace = new Utils.place(this.place.x, this.place.y - this.size.y / 2 - this.bottomStorageHeigth / 2, this.place.z);
+        this.topStoragePlace = new Utils.place(this.place.x, this.place.y + this.size.y / 2 + this.topStorageHeight / 2, this.place.z);
+        this.storageStands = {
+          'bottomStorage': {
+            'leftBorder': new Border(new Utils.place(this.bottomStoragePlace.x - this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial),
+            'rightBorder': new Border(new Utils.place(this.bottomStoragePlace.x + this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial),
+            'backBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y, this.bottomStoragePlace.z - this.size.z / 2), new Utils.size(this.size.x, this.bottomStorageHeigth, this.borderWidth), this.storageMaterial),
+            'frontBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y, this.bottomStoragePlace.z + this.size.z / 2), new Utils.size(this.size.x, this.bottomStorageHeigth, this.borderWidth), this.storageMaterial),
+            'bottomBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y - this.bottomStorageHeigth / 2, this.bottomStoragePlace.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.storageMaterial)
+          },
+          'topStorage': {
+            'leftBorder': new Border(new Utils.place(this.topStoragePlace.x - this.size.x / 2, this.topStoragePlace.y, this.topStoragePlace.z), new Utils.size(this.borderWidth, this.topStorageHeight, this.size.z), this.storageMaterial),
+            'rightBorder': new Border(new Utils.place(this.topStoragePlace.x + this.size.x / 2, this.topStoragePlace.y, this.topStoragePlace.z), new Utils.size(this.borderWidth, this.topStorageHeight, this.size.z), this.storageMaterial),
+            'backBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y, this.topStoragePlace.z - this.size.z / 2), new Utils.size(this.size.x, this.topStorageHeight, this.borderWidth), this.storageMaterial),
+            'frontBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y, this.topStoragePlace.z + this.size.z / 2), new Utils.size(this.size.x, this.topStorageHeight, this.borderWidth), this.storageMaterial),
+            'topBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y + this.topStorageHeight / 2 - this.borderWidth / 2, this.topStoragePlace.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.storageMaterial)
+          }
         };
         this.mesh = new THREE.Object3D;
         ref = Object.keys(this.borders);
         for (i = 0, len = ref.length; i < len; i++) {
           borderName = ref[i];
           this.mesh.add(this.borders[borderName].mesh);
+        }
+        ref1 = Object.keys(this.storageStands);
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          storageName = ref1[j];
+          ref2 = Object.keys(this.storageStands[storageName]);
+          for (k = 0, len2 = ref2.length; k < len2; k++) {
+            ind2 = ref2[k];
+            this.mesh.add(this.storageStands[storageName][ind2].mesh);
+          }
         }
       }
 
@@ -799,7 +827,7 @@ define("../bower_components/almond/almond", function(){});
     var engine, i, obj;
     engine = new Engine;
     i = 20;
-    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.place(10, 60, 20), Materials.glass, Materials.wood);
+    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.place(10, 60, 20), Materials.glass, Materials.wood, 10, 3, Materials.panel);
     engine.addToScene(obj);
     obj.addShelf(15);
     obj.addShelf(30);
