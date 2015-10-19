@@ -1,16 +1,18 @@
 define ['materials', 'dimension'], (Materials, Dimension) ->
-	class PhysicalObject extends THREE.EventDispatcher
+	class PhysicalObject extends THREE.Object3D
 		constructor: (@place, @size, @material) ->
+			super()
+			
 			@dimension = null
 			@showCaseGeometry = new THREE.BoxGeometry @size.x, @size.y, @size.z
-			showCaseMaterial = @material
+			#showCaseMaterial = @material
 
-			@mesh = new THREE.Mesh @showCaseGeometry, showCaseMaterial
-			@mesh.position.x = @place.x
-			@mesh.position.y = @place.y
-			@mesh.position.z = @place.z
+			@.add new THREE.Mesh @showCaseGeometry, @material
+			@.position.x = @place.x
+			@.position.y = @place.y
+			@.position.z = @place.z
 		addToScene: (callback) ->
-			do callback @mesh
+			callback @
 
 		addChildrenObject: (object)=>
 			event = new CustomEvent 'newObject', {
@@ -24,12 +26,12 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 			@dispatchEvent event
 		toggleDimensions: ->
 			unless @dimension
-				@dimension = new Dimension @mesh, 2
-				@addChildrenObject @dimension.mesh
+				@dimension = new Dimension @, 2
+				@addChildrenObject @dimension
 			else
-				@removeChildrenObject @dimension.mesh
+				@removeChildrenObject @dimension
 				@dimension = null
 
 		getMesh: ->
-			@mesh
+			@
 			

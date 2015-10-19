@@ -1,7 +1,7 @@
 require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine, physicalObject, Utils, Materials, ShowCase) ->
 	engine = new Engine
 	i = 20
-	obj = new ShowCase new Utils.place(0,0,0), new Utils.place(10,60,20), Materials.glass, Materials.wood, 10, 3, Materials.panel
+	obj = new ShowCase new Utils.place(0,0,0), new Utils.size(10,60,20), Materials.glass, Materials.wood, 10, 3, Materials.panel
 	engine.addToScene obj
 
 	obj.addShelf 15

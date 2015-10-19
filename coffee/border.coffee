@@ -12,10 +12,10 @@ define ['physicalObject'], (physicalObject) ->
 			@radius = @width / (90 / @elementaryAngle) * (Math.PI/2)
 		openDoor: ->
 			if @door
-				@mesh.rotation.y-=Math.PI/180 * @elementaryAngle
-				@mesh.position.x -= @radius/2 * Math.cos(@angle)
-				@mesh.position.z -= @radius/2 * Math.sin(@angle)				
+				@.rotation.y-=Math.PI/180 * @elementaryAngle
+				@.position.x -= @radius/2 * Math.cos(@angle)
+				@.position.z -= @radius/2 * Math.sin(@angle)				
 				@angle += Math.PI/180 * @elementaryAngle
-				@door = false if Math.abs(@mesh.rotation.y) > Math.PI / 2
+				@door = false if Math.abs(@.rotation.y) > Math.PI / 2
 
 

@@ -1,6 +1,7 @@
 define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, Border, physicalObject, Materials, Dimension) ->
 	class ShowCase extends physicalObject
 		constructor: (@place, @size, @borderMaterial, @backBorderMaterial, @bottomStorageHeigth, @topStorageHeight, @storageMaterial) ->
+			super(@place, @size, @borderMaterial)
 			@borderWidth = 0.5
 			@shelfs = []
 			@borders = {
@@ -83,12 +84,11 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, B
 					}
 			}
 
-			@mesh = new THREE.Object3D
-			@mesh.add @borders[borderName].mesh for borderName in Object.keys @borders
-			@mesh.add @storageStands[storageName][ind2].mesh for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
+			@.add @borders[borderName] for borderName in Object.keys @borders
+			@.add @storageStands[storageName][ind2] for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
 		addToScene: (callback) ->
-			 callback @mesh
+			 callback @
 
 		addShelf: (height) ->
 			@shelfs.push new Border(
@@ -96,4 +96,4 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, B
 					new Utils.size(@size.x, @borderWidth, @size.z),
 					Materials.wood
 				)
-			@addChildrenObject.call @, @shelfs[@shelfs.length - 1].mesh
+			@addChildrenObject.call @, @shelfs[@shelfs.length - 1]
