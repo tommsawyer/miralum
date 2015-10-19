@@ -433,11 +433,101 @@ var requirejs, require, define;
 define("../bower_components/almond/almond", function(){});
 
 (function() {
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  define('controls',[], function() {
+    var Controls;
+    return Controls = (function() {
+      function Controls(canvas) {
+        this.canvas = canvas;
+        this.onMouseMove = bind(this.onMouseMove, this);
+        this.onMouseClick = bind(this.onMouseClick, this);
+        this.raycaster = new THREE.Raycaster;
+        this.mouse = new THREE.Vector2;
+        this.canvas.addEventListener('mousemove', this.onMouseMove, false);
+        this.canvas.addEventListener('mousedown', this.onMouseClick, false);
+        this.activeMesh = {
+          object: null,
+          material: null
+        };
+        this.selected = null;
+        this.material = new THREE.MeshLambertMaterial({
+          color: 0x00ff00
+        });
+        this.blockInfo = document.getElementById('blockInfo');
+        this.blockName = document.getElementById('blockName');
+        this.blockWidth = document.getElementById('blockWidth');
+        this.blockHeight = document.getElementById('blockHeight');
+      }
+
+      Controls.prototype.onMouseClick = function(event) {
+        event.preventDefault();
+        if (this.selected.length > 1) {
+          return this.setActiveMesh(this.selected[1].object);
+        }
+      };
+
+      Controls.prototype.onMouseMove = function(event) {
+        event.preventDefault();
+        this.mouse.x = (event.clientX / this.canvas.width) * 2 - 1;
+        return this.mouse.y = -(event.clientY / this.canvas.height) * 2 + 1.3;
+      };
+
+      Controls.prototype.setActiveMesh = function(mesh) {
+        if (this.activeMesh.object !== mesh) {
+          if (this.activeMesh.object !== null) {
+            this.activeMesh.object.material = this.activeMesh.material;
+          }
+          this.activeMesh.object = mesh;
+          this.activeMesh.material = mesh.material;
+          this.activeMesh.object.material = this.material;
+          return this.fillBlockFields(true, this.activeMesh.object.type);
+        }
+      };
+
+      Controls.prototype.findIntersect = function(scene, camera) {
+        var intersects;
+        this.raycaster.setFromCamera(this.mouse, camera);
+        intersects = this.raycaster.intersectObjects(scene.children, true);
+        if (intersects.length > 0) {
+          if (intersects !== this.selected) {
+            this.setActiveMesh(intersects[0].object);
+            return this.selected = intersects.slice();
+          }
+        } else {
+          if (this.activeMesh.object !== null) {
+            this.activeMesh.object.material = this.activeMesh.material;
+          }
+          this.activeMesh.object = null;
+          this.fillBlockFields(false);
+          return this.selected = null;
+        }
+      };
+
+      Controls.prototype.fillBlockFields = function(visible, name, width, height) {
+        if (visible) {
+          this.blockInfo.style.display = 'block';
+          this.blockName.innerText = name;
+          this.blockWidth.innerHtml = width;
+          return this.blockHeight.innerHtml = height;
+        } else {
+          return this.blockInfo.style.display = 'none';
+        }
+      };
+
+      return Controls;
+
+    })();
+  });
+
+}).call(this);
+
+(function() {
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('engine',[], function() {
+  define('engine',['controls'], function(Controls) {
     var Engine;
     return Engine = (function(superClass) {
       extend(Engine, superClass);
@@ -450,6 +540,7 @@ define("../bower_components/almond/almond", function(){});
         this._initializeCameras();
         this._initializeSpotilights();
         this._addAxes(50);
+        this.controls = new Controls(this.renderer.domElement);
         this.run();
       }
 
@@ -496,6 +587,7 @@ define("../bower_components/almond/almond", function(){});
         renderScene = (function(_this) {
           return function() {
             _this.dispatchEvent(_this.event);
+            _this.controls.findIntersect(_this.scene, _this.camera);
             requestAnimationFrame(renderScene);
             return _this.renderer.render(_this.scene, _this.camera);
           };

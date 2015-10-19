@@ -1,4 +1,4 @@
-define [], ->	
+define ['controls'], (Controls) ->	
 	class Engine extends THREE.EventDispatcher
 		#
 		# Public functions
@@ -7,10 +7,13 @@ define [], ->
 			@event = new CustomEvent 'render', {
 				}
 
+
 			do @_initialize
 			do @_initializeCameras
 			do @_initializeSpotilights
 			@_addAxes 50
+
+			@controls = new Controls @renderer.domElement
 
 			do @run
 
@@ -38,6 +41,7 @@ define [], ->
 		run: ->
 			renderScene = =>
 				@dispatchEvent @event
+				@controls.findIntersect @scene, @camera
 				requestAnimationFrame renderScene
 				@renderer.render @scene, @camera
 			do renderScene
