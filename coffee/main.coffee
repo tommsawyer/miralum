@@ -12,6 +12,16 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine,
 
 	document.getElementById('changeCamera').onclick = ->
 		do engine.nextCamera
+		
+	document.getElementById('centerCamera').onclick = ->
+		engine.viewObject obj.mesh
+
+	document.getElementById('cameraUp').onclick = ->
+		engine.moveCamera 5
+
+	document.getElementById('cameraDown').onclick = ->
+		engine.moveCamera -5
+
 	document.getElementById('toggleDimensions').onclick = ->
 		do obj.toggleDimensions
 

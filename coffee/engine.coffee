@@ -35,9 +35,19 @@ define ['controls'], (Controls) ->
 			@camera.position.x = @cameraPositions[@currentCamera].x
 			@camera.position.y = @cameraPositions[@currentCamera].y
 			@camera.position.z = @cameraPositions[@currentCamera].z
-
 			@camera.lookAt @scene.position
 
+		moveCamera: (y) ->
+			@camera.position.y += y
+
+		viewObject: (object) ->
+			viewAngle = do @camera.fov.toRadians
+			sizes = do (new THREE.Box3().setFromObject(object)).size
+			@camera.position.z = object.position.z
+			@camera.position.y = object.position.y / 2
+			@camera.position.x = object.position.x - sizes.x / 2 - 40 - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle)
+			console.log @camera.position.x
+			@camera.lookAt object.position
 		run: ->
 			renderScene = =>
 				@dispatchEvent @event
@@ -51,7 +61,6 @@ define ['controls'], (Controls) ->
 		#	
 		_initialize: ->
 			@scene = new THREE.Scene
-
 			@renderer = new THREE.WebGLRenderer
 			@renderer.setClearColor 0xEEEEEE
 			@renderer.setSize document.body.clientWidth, document.body.clientHeight

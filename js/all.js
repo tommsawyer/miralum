@@ -441,7 +441,6 @@ define("../bower_components/almond/almond", function(){});
       function Controls(canvas) {
         this.canvas = canvas;
         this.onMouseMove = bind(this.onMouseMove, this);
-        this.onMouseClick = bind(this.onMouseClick, this);
         this.raycaster = new THREE.Raycaster;
         this.mouse = new THREE.Vector2;
         this.canvas.addEventListener('mousemove', this.onMouseMove, false);
@@ -460,13 +459,6 @@ define("../bower_components/almond/almond", function(){});
         this.blockHeight = document.getElementById('blockHeight');
       }
 
-      Controls.prototype.onMouseClick = function(event) {
-        event.preventDefault();
-        if (this.selected.length > 1) {
-          return this.setActiveMesh(this.selected[1].object);
-        }
-      };
-
       Controls.prototype.onMouseMove = function(event) {
         event.preventDefault();
         this.mouse.x = (event.clientX / this.canvas.width) * 2 - 1;
@@ -474,7 +466,7 @@ define("../bower_components/almond/almond", function(){});
       };
 
       Controls.prototype.setActiveMesh = function(mesh) {
-        if (this.activeMesh.object !== mesh) {
+        if (!(this.activeMesh.object === mesh && this.activeMesh.object !== null)) {
           if (this.activeMesh.object !== null) {
             this.activeMesh.object.material = this.activeMesh.material;
           }
@@ -491,7 +483,7 @@ define("../bower_components/almond/almond", function(){});
         intersects = this.raycaster.intersectObjects(scene.children, true);
         if (intersects.length > 0) {
           if (intersects !== this.selected) {
-            this.setActiveMesh(intersects[0].object);
+            this.setActiveMesh(intersects.first().object);
             return this.selected = intersects.slice();
           }
         } else {
@@ -580,6 +572,21 @@ define("../bower_components/almond/almond", function(){});
         this.camera.position.y = this.cameraPositions[this.currentCamera].y;
         this.camera.position.z = this.cameraPositions[this.currentCamera].z;
         return this.camera.lookAt(this.scene.position);
+      };
+
+      Engine.prototype.moveCamera = function(y) {
+        return this.camera.position.y += y;
+      };
+
+      Engine.prototype.viewObject = function(object) {
+        var sizes, viewAngle;
+        viewAngle = this.camera.fov.toRadians();
+        sizes = (new THREE.Box3().setFromObject(object)).size();
+        this.camera.position.z = object.position.z;
+        this.camera.position.y = object.position.y / 2;
+        this.camera.position.x = object.position.x - sizes.x / 2 - 40 - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle);
+        console.log(this.camera.position.x);
+        return this.camera.lookAt(object.position);
       };
 
       Engine.prototype.run = function() {
@@ -779,6 +786,18 @@ define("../bower_components/almond/almond", function(){});
 (function() {
   define('utils',[], function() {
     var Place;
+    Array.prototype.last = function() {
+      return this[this.length - 1];
+    };
+    Array.prototype.first = function() {
+      return this[0];
+    };
+    Number.prototype.toDegress = function() {
+      return this * 180 / Math.PI;
+    };
+    Number.prototype.toRadians = function() {
+      return Math.PI * this / 180;
+    };
     Place = (function() {
       function Place(x, y, z) {
         this.x = x;
@@ -927,6 +946,15 @@ define("../bower_components/almond/almond", function(){});
     obj.borders["leftBorder"].door = true;
     document.getElementById('changeCamera').onclick = function() {
       return engine.nextCamera();
+    };
+    document.getElementById('centerCamera').onclick = function() {
+      return engine.viewObject(obj.mesh);
+    };
+    document.getElementById('cameraUp').onclick = function() {
+      return engine.moveCamera(5);
+    };
+    document.getElementById('cameraDown').onclick = function() {
+      return engine.moveCamera(-5);
     };
     document.getElementById('toggleDimensions').onclick = function() {
       return obj.toggleDimensions();
