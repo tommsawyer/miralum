@@ -1,6 +1,6 @@
 define ['physicalObject'], (physicalObject) ->
 	class Border extends physicalObject
-		constructor: (@place, @size, @material) ->
+		constructor: (@place, @size, @material, @planeName) ->
 			super(@place, @size, @material)
 			@door = false
 			@angle = 0

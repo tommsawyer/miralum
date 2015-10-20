@@ -10,7 +10,9 @@ define ['utils'], (Utils) ->
 				material: null
 			}
 			@material = new THREE.MeshLambertMaterial {
-				color: 0x00ff00
+				color: 0x00ff00,
+				transparent: true,
+				opacity: 0.3
 				}	
 
 			@blockInfo = document.getElementById('blockInfo')

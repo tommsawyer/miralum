@@ -488,7 +488,9 @@ define("../bower_components/almond/almond", function(){});
           material: null
         };
         this.material = new THREE.MeshLambertMaterial({
-          color: 0x00ff00
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0.3
         });
         this.blockInfo = document.getElementById('blockInfo');
         this.blockName = document.getElementById('blockName');
@@ -717,6 +719,9 @@ define("../bower_components/almond/almond", function(){});
       }),
       'line': new THREE.LineBasicMaterial({
         color: 0x000000
+      }),
+      'winding': new THREE.MeshLambertMaterial({
+        color: 0xffffff
       })
     };
   });
@@ -724,12 +729,17 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
   define('dimension',['physicalObject', 'materials'], function(physicalObject, Materials) {
     var Dimension;
-    return Dimension = (function() {
+    return Dimension = (function(superClass) {
+      extend(Dimension, superClass);
+
       function Dimension(mesh, correction) {
         var LeftCorner, bottomBackCorner, bottomFrontCorner, bottomLeftCorner, bottomRightCorner, sizes, topLeftCorner;
-        this.mesh = new THREE.Object3D;
+        Dimension.__super__.constructor.call(this);
         sizes = (new THREE.Box3().setFromObject(mesh)).size();
         bottomLeftCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y - sizes.y / 2, mesh.position.z - sizes.z / 2);
         bottomRightCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y - sizes.y / 2, mesh.position.z + sizes.z / 2);
@@ -737,9 +747,9 @@ define("../bower_components/almond/almond", function(){});
         LeftCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2 - correction, mesh.position.y + sizes.y / 2, mesh.position.z - sizes.z / 2);
         bottomBackCorner = new THREE.Vector3(mesh.position.x - sizes.x / 2, mesh.position.y - sizes.y / 2, mesh.position.z + sizes.z / 2 + correction);
         bottomFrontCorner = new THREE.Vector3(mesh.position.x + sizes.x / 2, mesh.position.y - sizes.y / 2, mesh.position.z + sizes.z / 2 + correction);
-        this.mesh.add(this.createLine(bottomLeftCorner, bottomRightCorner));
-        this.mesh.add(this.createLine(topLeftCorner, bottomLeftCorner));
-        this.mesh.add(this.createLine(bottomBackCorner, bottomFrontCorner));
+        this.add(this.createLine(bottomLeftCorner, bottomRightCorner));
+        this.add(this.createLine(topLeftCorner, bottomLeftCorner));
+        this.add(this.createLine(bottomBackCorner, bottomFrontCorner));
       }
 
       Dimension.prototype.createLine = function(from, to) {
@@ -756,7 +766,7 @@ define("../bower_components/almond/almond", function(){});
 
       return Dimension;
 
-    })();
+    })(THREE.Object3D);
   });
 
 }).call(this);
@@ -848,10 +858,11 @@ define("../bower_components/almond/almond", function(){});
     return Border = (function(superClass) {
       extend(Border, superClass);
 
-      function Border(place, size, material) {
+      function Border(place, size, material, planeName) {
         this.place = place;
         this.size = size;
         this.material = material;
+        this.planeName = planeName;
         Border.__super__.constructor.call(this, this.place, this.size, this.material);
         this.door = false;
         this.angle = 0;
@@ -889,7 +900,7 @@ define("../bower_components/almond/almond", function(){});
       extend(ShowCase, superClass);
 
       function ShowCase(place, size, borderMaterial, backBorderMaterial, bottomStorageHeigth, topStorageHeight, storageMaterial) {
-        var borderName, i, ind2, j, k, len, len1, len2, ref, ref1, ref2, storageName;
+        var borderName, i, ind2, j, k, l, len, len1, len2, len3, len4, len5, m, n, ref, ref1, ref2, ref3, ref4, ref5, storageName, winding;
         this.place = place;
         this.size = size;
         this.borderMaterial = borderMaterial;
@@ -901,29 +912,83 @@ define("../bower_components/almond/almond", function(){});
         this.borderWidth = 0.5;
         this.shelfs = [];
         this.borders = {
-          'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial),
-          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.backBorderMaterial),
-          'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial),
-          'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial)
+          'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
+          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.backBorderMaterial, "yz"),
+          'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy"),
+          'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy")
         };
         this.bottomStoragePlace = new Utils.place(this.place.x, this.place.y - this.size.y / 2 - this.bottomStorageHeigth / 2, this.place.z);
         this.topStoragePlace = new Utils.place(this.place.x, this.place.y + this.size.y / 2 + this.topStorageHeight / 2, this.place.z);
         this.storageStands = {
           'bottomStorage': {
-            'leftBorder': new Border(new Utils.place(this.bottomStoragePlace.x - this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial),
-            'rightBorder': new Border(new Utils.place(this.bottomStoragePlace.x + this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial),
-            'backBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y, this.bottomStoragePlace.z - this.size.z / 2), new Utils.size(this.size.x, this.bottomStorageHeigth, this.borderWidth), this.storageMaterial),
-            'frontBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y, this.bottomStoragePlace.z + this.size.z / 2), new Utils.size(this.size.x, this.bottomStorageHeigth, this.borderWidth), this.storageMaterial),
-            'bottomBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y - this.bottomStorageHeigth / 2, this.bottomStoragePlace.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.storageMaterial)
+            'leftBorder': new Border(new Utils.place(this.bottomStoragePlace.x - this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial, "yz"),
+            'rightBorder': new Border(new Utils.place(this.bottomStoragePlace.x + this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial, "yz"),
+            'backBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y, this.bottomStoragePlace.z - this.size.z / 2), new Utils.size(this.size.x, this.bottomStorageHeigth, this.borderWidth), this.storageMaterial, "xy"),
+            'frontBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y, this.bottomStoragePlace.z + this.size.z / 2), new Utils.size(this.size.x, this.bottomStorageHeigth, this.borderWidth), this.storageMaterial, "xy"),
+            'bottomBorder': new Border(new Utils.place(this.bottomStoragePlace.x, this.bottomStoragePlace.y - this.bottomStorageHeigth / 2, this.bottomStoragePlace.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.storageMaterial, "xz")
           },
           'topStorage': {
-            'leftBorder': new Border(new Utils.place(this.topStoragePlace.x - this.size.x / 2, this.topStoragePlace.y, this.topStoragePlace.z), new Utils.size(this.borderWidth, this.topStorageHeight, this.size.z), this.storageMaterial),
-            'rightBorder': new Border(new Utils.place(this.topStoragePlace.x + this.size.x / 2, this.topStoragePlace.y, this.topStoragePlace.z), new Utils.size(this.borderWidth, this.topStorageHeight, this.size.z), this.storageMaterial),
-            'backBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y, this.topStoragePlace.z - this.size.z / 2), new Utils.size(this.size.x, this.topStorageHeight, this.borderWidth), this.storageMaterial),
-            'frontBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y, this.topStoragePlace.z + this.size.z / 2), new Utils.size(this.size.x, this.topStorageHeight, this.borderWidth), this.storageMaterial),
-            'topBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y + this.topStorageHeight / 2 - this.borderWidth / 2, this.topStoragePlace.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.storageMaterial)
+            'leftBorder': new Border(new Utils.place(this.topStoragePlace.x - this.size.x / 2, this.topStoragePlace.y, this.topStoragePlace.z), new Utils.size(this.borderWidth, this.topStorageHeight, this.size.z), this.storageMaterial, "yz"),
+            'rightBorder': new Border(new Utils.place(this.topStoragePlace.x + this.size.x / 2, this.topStoragePlace.y, this.topStoragePlace.z), new Utils.size(this.borderWidth, this.topStorageHeight, this.size.z), this.storageMaterial, "yz"),
+            'backBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y, this.topStoragePlace.z - this.size.z / 2), new Utils.size(this.size.x, this.topStorageHeight, this.borderWidth), this.storageMaterial, "xy"),
+            'frontBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y, this.topStoragePlace.z + this.size.z / 2), new Utils.size(this.size.x, this.topStorageHeight, this.borderWidth), this.storageMaterial, "xy"),
+            'topBorder': new Border(new Utils.place(this.topStoragePlace.x, this.topStoragePlace.y + this.topStorageHeight / 2 - this.borderWidth / 2, this.topStoragePlace.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), this.storageMaterial, "xz")
           }
         };
+        winding = (function(_this) {
+          return function(border, width) {
+            var borderWinding, depth, i, j, k, kx, ky, kz, placeX, placeY, placeZ, sizeX, sizeY, sizeZ;
+            borderWinding = new THREE.Object3D;
+            depth = 0.1;
+            for (kx = i = -1; i <= 1; kx = ++i) {
+              for (ky = j = -1; j <= 1; ky = ++j) {
+                for (kz = k = -1; k <= 1; kz = ++k) {
+                  if (Math.abs(kx) + Math.abs(ky) + Math.abs(kz) === 2) {
+                    placeX = border.place.x + kx * border.size.x / 2;
+                    placeY = border.place.y + ky * border.size.y / 2;
+                    placeZ = border.place.z + kz * border.size.z / 2;
+                    switch (border.planeName) {
+                      case "xy":
+                        if (kz === 0) {
+                          continue;
+                        }
+                        if (Math.abs(kx) + Math.abs(ky) !== 1) {
+                          continue;
+                        }
+                        sizeX = ky !== 0 ? border.size.x : width;
+                        sizeY = kx !== 0 ? border.size.y : width;
+                        sizeZ = depth;
+                        break;
+                      case "xz":
+                        if (ky === 0) {
+                          continue;
+                        }
+                        if (Math.abs(kx) + Math.abs(kz) !== 1) {
+                          continue;
+                        }
+                        sizeX = kz !== 0 ? border.size.x : width;
+                        sizeY = depth;
+                        sizeZ = kx !== 0 ? border.size.z : width;
+                        break;
+                      case "yz":
+                        if (kx === 0) {
+                          continue;
+                        }
+                        if (Math.abs(ky) + Math.abs(kz) !== 1) {
+                          continue;
+                        }
+                        sizeX = depth;
+                        sizeY = kz !== 0 ? border.size.y : width;
+                        sizeZ = ky !== 0 ? border.size.z : width;
+                    }
+                    borderWinding.add(new Border(new Utils.place(placeX, placeY, placeZ), new Utils.size(sizeX, sizeY, sizeZ), Materials.winding));
+                  }
+                }
+              }
+            }
+            return borderWinding;
+          };
+        })(this);
         ref = Object.keys(this.borders);
         for (i = 0, len = ref.length; i < len; i++) {
           borderName = ref[i];
@@ -936,6 +1001,20 @@ define("../bower_components/almond/almond", function(){});
           for (k = 0, len2 = ref2.length; k < len2; k++) {
             ind2 = ref2[k];
             this.add(this.storageStands[storageName][ind2]);
+          }
+        }
+        ref3 = Object.keys(this.borders);
+        for (l = 0, len3 = ref3.length; l < len3; l++) {
+          borderName = ref3[l];
+          this.add(winding(this.borders[borderName], 1));
+        }
+        ref4 = Object.keys(this.storageStands);
+        for (m = 0, len4 = ref4.length; m < len4; m++) {
+          storageName = ref4[m];
+          ref5 = Object.keys(this.storageStands[storageName]);
+          for (n = 0, len5 = ref5.length; n < len5; n++) {
+            ind2 = ref5[n];
+            this.add(winding(this.storageStands[storageName][ind2], 1));
           }
         }
       }

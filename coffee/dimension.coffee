@@ -1,7 +1,7 @@
 define ['physicalObject', 'materials'], (physicalObject, Materials) ->
-	class Dimension
+	class Dimension extends THREE.Object3D
 		constructor: (mesh, correction) ->
-			@mesh = new THREE.Object3D
+			super()
 			sizes = do (new THREE.Box3().setFromObject(mesh)).size
 			bottomLeftCorner = new THREE.Vector3(
 				mesh.position.x - sizes.x / 2 - correction,
@@ -33,9 +33,9 @@ define ['physicalObject', 'materials'], (physicalObject, Materials) ->
 				mesh.position.y - sizes.y / 2,
 				mesh.position.z + sizes.z / 2 + correction
 				)
-			@mesh.add @createLine bottomLeftCorner, bottomRightCorner
-			@mesh.add @createLine topLeftCorner, bottomLeftCorner
-			@mesh.add @createLine bottomBackCorner, bottomFrontCorner
+			@.add @createLine bottomLeftCorner, bottomRightCorner
+			@.add @createLine topLeftCorner, bottomLeftCorner
+			@.add @createLine bottomBackCorner, bottomFrontCorner
 
 		createLine: (from, to) ->
 			geometry = new THREE.Geometry

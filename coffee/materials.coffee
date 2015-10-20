@@ -18,4 +18,7 @@ define ['engine'], (Engine) ->
 		'line': new THREE.LineBasicMaterial({
 			color: 0x000000
 		}),
+		'winding': new THREE.MeshLambertMaterial({
+			color: 0xffffff
+		}),
 	}
