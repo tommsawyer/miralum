@@ -15,6 +15,8 @@ define [], ->
 		constructor: (@x, @y, @z) ->
 
 	return {
+			getObjectSize: (object) ->
+				do (new THREE.Box3().setFromObject(object)).size
 			place: Place,
 			size: Place
 	}

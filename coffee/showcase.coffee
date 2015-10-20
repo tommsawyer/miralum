@@ -83,9 +83,8 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, B
 						
 					}
 			}
-
-			@.add @borders[borderName] for borderName in Object.keys @borders
-			@.add @storageStands[storageName][ind2] for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
+			@add @borders[borderName] for borderName in Object.keys @borders
+			@add @storageStands[storageName][ind2] for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
 		addToScene: (callback) ->
 			 callback @

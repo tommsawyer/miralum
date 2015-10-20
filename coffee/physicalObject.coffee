@@ -24,6 +24,10 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 				detail: object
 			}
 			@dispatchEvent event
+
+		remove: ->
+			removeChildrenObject @
+
 		toggleDimensions: ->
 			unless @dimension
 				@dimension = new Dimension @, 2
@@ -31,6 +35,12 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 			else
 				@removeChildrenObject @dimension
 				@dimension = null
+
+		click: (params) ->
+			event = new CustomEvent 'click', {
+				detail: params
+			}
+			@dispatchEvent event
 
 		getMesh: ->
 			@

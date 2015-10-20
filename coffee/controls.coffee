@@ -1,6 +1,6 @@
-define [], () ->
+define ['utils'], (Utils) ->
 	class Controls
-		constructor: (@canvas) ->
+		constructor: (@canvas, @engine) ->
 			@raycaster = new THREE.Raycaster
 			@mouse = new THREE.Vector2
 			@canvas.addEventListener 'mousemove', @onMouseMove, false
@@ -9,14 +9,18 @@ define [], () ->
 				object: null,
 				material: null
 			}
-			@selected = null
 			@material = new THREE.MeshLambertMaterial {
 				color: 0x00ff00
 				}	
+
 			@blockInfo = document.getElementById('blockInfo')
 			@blockName = document.getElementById('blockName')
 			@blockWidth = document.getElementById('blockWidth')
 			@blockHeight = document.getElementById('blockHeight')
+
+		onMouseClick: (event) =>
+			@activeMesh.object.parent.click event unless @activeMesh.object == null
+			@engine.viewObject @activeMesh.object.parent
 
 		onMouseMove: (event) =>
 			do event.preventDefault
@@ -29,16 +33,16 @@ define [], () ->
 				@activeMesh.object = mesh
 				@activeMesh.material = mesh.material
 				@activeMesh.object.material = @material
-				@fillBlockFields true, @activeMesh.object.type
+				sizes = Utils.getObjectSize @activeMesh.object
+				@fillBlockFields true, @activeMesh.object.type, sizes.x, sizes.y
 
 		findIntersect: (scene, camera) ->
 			@raycaster.setFromCamera @mouse, camera
 			intersects = @raycaster.intersectObjects scene.children, true
 
 			if intersects.length > 0 
-				unless intersects == @selected
+				unless intersects.first() == @activeMesh.object
 					@setActiveMesh intersects.first().object 
-					@selected = do intersects.slice
 			else
 				@activeMesh.object.material = @activeMesh.material unless @activeMesh.object == null
 				@activeMesh.object = null
@@ -49,7 +53,7 @@ define [], () ->
 			if visible 
 				@blockInfo.style.display = 'block' 
 				@blockName.innerText  = name
-				@blockWidth.innerHtml  = width
-				@blockHeight.innerHtml = height
+				@blockWidth.innerText  = width
+				@blockHeight.innerText = height
 			else 
 				@blockInfo.style.display = 'none'

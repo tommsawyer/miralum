@@ -433,14 +433,52 @@ var requirejs, require, define;
 define("../bower_components/almond/almond", function(){});
 
 (function() {
+  define('utils',[], function() {
+    var Place;
+    Array.prototype.last = function() {
+      return this[this.length - 1];
+    };
+    Array.prototype.first = function() {
+      return this[0];
+    };
+    Number.prototype.toDegress = function() {
+      return this * 180 / Math.PI;
+    };
+    Number.prototype.toRadians = function() {
+      return Math.PI * this / 180;
+    };
+    Place = (function() {
+      function Place(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+      }
+
+      return Place;
+
+    })();
+    return {
+      getObjectSize: function(object) {
+        return (new THREE.Box3().setFromObject(object)).size();
+      },
+      place: Place,
+      size: Place
+    };
+  });
+
+}).call(this);
+
+(function() {
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  define('controls',[], function() {
+  define('controls',['utils'], function(Utils) {
     var Controls;
     return Controls = (function() {
-      function Controls(canvas) {
+      function Controls(canvas, engine) {
         this.canvas = canvas;
+        this.engine = engine;
         this.onMouseMove = bind(this.onMouseMove, this);
+        this.onMouseClick = bind(this.onMouseClick, this);
         this.raycaster = new THREE.Raycaster;
         this.mouse = new THREE.Vector2;
         this.canvas.addEventListener('mousemove', this.onMouseMove, false);
@@ -449,7 +487,6 @@ define("../bower_components/almond/almond", function(){});
           object: null,
           material: null
         };
-        this.selected = null;
         this.material = new THREE.MeshLambertMaterial({
           color: 0x00ff00
         });
@@ -459,6 +496,13 @@ define("../bower_components/almond/almond", function(){});
         this.blockHeight = document.getElementById('blockHeight');
       }
 
+      Controls.prototype.onMouseClick = function(event) {
+        if (this.activeMesh.object !== null) {
+          this.activeMesh.object.parent.click(event);
+        }
+        return this.engine.viewObject(this.activeMesh.object.parent);
+      };
+
       Controls.prototype.onMouseMove = function(event) {
         event.preventDefault();
         this.mouse.x = (event.clientX / this.canvas.width) * 2 - 1;
@@ -466,6 +510,7 @@ define("../bower_components/almond/almond", function(){});
       };
 
       Controls.prototype.setActiveMesh = function(mesh) {
+        var sizes;
         if (!(this.activeMesh.object === mesh && this.activeMesh.object !== null)) {
           if (this.activeMesh.object !== null) {
             this.activeMesh.object.material = this.activeMesh.material;
@@ -473,7 +518,8 @@ define("../bower_components/almond/almond", function(){});
           this.activeMesh.object = mesh;
           this.activeMesh.material = mesh.material;
           this.activeMesh.object.material = this.material;
-          return this.fillBlockFields(true, this.activeMesh.object.type);
+          sizes = Utils.getObjectSize(this.activeMesh.object);
+          return this.fillBlockFields(true, this.activeMesh.object.type, sizes.x, sizes.y);
         }
       };
 
@@ -482,9 +528,8 @@ define("../bower_components/almond/almond", function(){});
         this.raycaster.setFromCamera(this.mouse, camera);
         intersects = this.raycaster.intersectObjects(scene.children, true);
         if (intersects.length > 0) {
-          if (intersects !== this.selected) {
-            this.setActiveMesh(intersects.first().object);
-            return this.selected = intersects.slice();
+          if (intersects.first() !== this.activeMesh.object) {
+            return this.setActiveMesh(intersects.first().object);
           }
         } else {
           if (this.activeMesh.object !== null) {
@@ -500,8 +545,8 @@ define("../bower_components/almond/almond", function(){});
         if (visible) {
           this.blockInfo.style.display = 'block';
           this.blockName.innerText = name;
-          this.blockWidth.innerHtml = width;
-          return this.blockHeight.innerHtml = height;
+          this.blockWidth.innerText = width;
+          return this.blockHeight.innerText = height;
         } else {
           return this.blockInfo.style.display = 'none';
         }
@@ -519,7 +564,7 @@ define("../bower_components/almond/almond", function(){});
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('engine',['controls'], function(Controls) {
+  define('engine',['controls', 'utils'], function(Controls, Utils) {
     var Engine;
     return Engine = (function(superClass) {
       extend(Engine, superClass);
@@ -532,7 +577,7 @@ define("../bower_components/almond/almond", function(){});
         this._initializeCameras();
         this._initializeSpotilights();
         this._addAxes(50);
-        this.controls = new Controls(this.renderer.domElement);
+        this.controls = new Controls(this.renderer.domElement, this);
         this.run();
       }
 
@@ -579,13 +624,13 @@ define("../bower_components/almond/almond", function(){});
       };
 
       Engine.prototype.viewObject = function(object) {
-        var sizes, viewAngle;
-        viewAngle = this.camera.fov.toRadians();
-        sizes = (new THREE.Box3().setFromObject(object)).size();
+        var correction, sizes, viewAngle;
+        correction = -5;
+        viewAngle = (this.camera.fov / 2).toRadians();
+        sizes = Utils.getObjectSize(object);
         this.camera.position.z = object.position.z;
-        this.camera.position.y = object.position.y / 2;
-        this.camera.position.x = object.position.x - sizes.x / 2 - 40 - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle);
-        console.log(this.camera.position.x);
+        this.camera.position.y = object.position.y;
+        this.camera.position.x = object.position.x - sizes.x / 2 + correction - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle);
         return this.camera.lookAt(object.position);
       };
 
@@ -761,6 +806,10 @@ define("../bower_components/almond/almond", function(){});
         return this.dispatchEvent(event);
       };
 
+      PhysicalObject.prototype.remove = function() {
+        return removeChildrenObject(this);
+      };
+
       PhysicalObject.prototype.toggleDimensions = function() {
         if (!this.dimension) {
           this.dimension = new Dimension(this, 2);
@@ -771,6 +820,14 @@ define("../bower_components/almond/almond", function(){});
         }
       };
 
+      PhysicalObject.prototype.click = function(params) {
+        var event;
+        event = new CustomEvent('click', {
+          detail: params
+        });
+        return this.dispatchEvent(event);
+      };
+
       PhysicalObject.prototype.getMesh = function() {
         return this;
       };
@@ -778,39 +835,6 @@ define("../bower_components/almond/almond", function(){});
       return PhysicalObject;
 
     })(THREE.Object3D);
-  });
-
-}).call(this);
-
-(function() {
-  define('utils',[], function() {
-    var Place;
-    Array.prototype.last = function() {
-      return this[this.length - 1];
-    };
-    Array.prototype.first = function() {
-      return this[0];
-    };
-    Number.prototype.toDegress = function() {
-      return this * 180 / Math.PI;
-    };
-    Number.prototype.toRadians = function() {
-      return Math.PI * this / 180;
-    };
-    Place = (function() {
-      function Place(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-      }
-
-      return Place;
-
-    })();
-    return {
-      place: Place,
-      size: Place
-    };
   });
 
 }).call(this);
@@ -947,7 +971,7 @@ define("../bower_components/almond/almond", function(){});
       return engine.nextCamera();
     };
     document.getElementById('centerCamera').onclick = function() {
-      return engine.viewObject(obj.mesh);
+      return engine.viewObject(obj);
     };
     document.getElementById('cameraUp').onclick = function() {
       return engine.moveCamera(5);

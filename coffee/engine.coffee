@@ -1,4 +1,4 @@
-define ['controls'], (Controls) ->	
+define ['controls', 'utils'], (Controls, Utils) ->	
 	class Engine extends THREE.EventDispatcher
 		#
 		# Public functions
@@ -13,7 +13,7 @@ define ['controls'], (Controls) ->
 			do @_initializeSpotilights
 			@_addAxes 50
 
-			@controls = new Controls @renderer.domElement
+			@controls = new Controls @renderer.domElement, @
 
 			do @run
 
@@ -41,12 +41,14 @@ define ['controls'], (Controls) ->
 			@camera.position.y += y
 
 		viewObject: (object) ->
-			viewAngle = do @camera.fov.toRadians
-			sizes = do (new THREE.Box3().setFromObject(object)).size
+			correction = -5
+
+			viewAngle = do (@camera.fov / 2).toRadians
+			sizes = Utils.getObjectSize object
 			@camera.position.z = object.position.z
-			@camera.position.y = object.position.y / 2
-			@camera.position.x = object.position.x - sizes.x / 2 - 40 - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle)
-			console.log @camera.position.x
+			@camera.position.y = object.position.y
+
+			@camera.position.x = object.position.x - sizes.x / 2 + correction  - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle)
 			@camera.lookAt object.position
 		run: ->
 			renderScene = =>

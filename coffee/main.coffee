@@ -3,7 +3,6 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine,
 	i = 20
 	obj = new ShowCase new Utils.place(0,0,0), new Utils.size(10,60,20), Materials.glass, Materials.wood, 10, 3, Materials.panel
 	engine.addToScene obj
-
 	obj.addShelf 15
 	obj.addShelf 30
 	obj.addShelf 45
@@ -14,7 +13,7 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine,
 		do engine.nextCamera
 		
 	document.getElementById('centerCamera').onclick = ->
-		engine.viewObject obj.mesh
+		engine.viewObject obj
 
 	document.getElementById('cameraUp').onclick = ->
 		engine.moveCamera 5
