@@ -923,7 +923,7 @@ define("../bower_components/almond/almond", function(){});
   var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('border',['physicalObject'], function(physicalObject) {
+  define('border',['physicalObject', 'engine'], function(physicalObject, Engine) {
     var Border;
     return Border = (function(superClass) {
       extend(Border, superClass);
@@ -934,24 +934,7 @@ define("../bower_components/almond/almond", function(){});
         this.material = material;
         this.planeName = planeName;
         Border.__super__.constructor.call(this, this.place, this.size, this.material);
-        this.door = false;
-        this.angle = 0;
-        this.width = this.size.z;
-        this.elementaryAngle = 2;
-        this.radius = this.width / (90 / this.elementaryAngle) * (Math.PI / 2);
       }
-
-      Border.prototype.openDoor = function() {
-        if (this.door) {
-          this.rotation.y -= Math.PI / 180 * this.elementaryAngle;
-          this.position.x -= this.radius / 2 * Math.cos(this.angle);
-          this.position.z -= this.radius / 2 * Math.sin(this.angle);
-          this.angle += Math.PI / 180 * this.elementaryAngle;
-          if (Math.abs(this.rotation.y) > Math.PI / 2) {
-            return this.door = false;
-          }
-        }
-      };
 
       return Border;
 
@@ -964,7 +947,99 @@ define("../bower_components/almond/almond", function(){});
   var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('showcase',['utils', 'border', 'physicalObject', 'materials', 'dimension'], function(Utils, Border, physicalObject, Materials, Dimension) {
+  define('door',['physicalObject', 'border'], function(physicalObject, Border) {
+    var Door;
+    return Door = (function(superClass) {
+      extend(Door, superClass);
+
+      function Door(place, size, material, planeName, openingDirection, openingType) {
+        this.place = place;
+        this.size = size;
+        this.material = material;
+        this.planeName = planeName;
+        this.openingDirection = openingDirection;
+        this.openingType = openingType;
+        Door.__super__.constructor.call(this, this.place, this.size, this.material, this.planeName);
+        this.angle = 0;
+        this.doorState = {
+          "opened": "opened",
+          "opening": "opening",
+          "closing": "closing",
+          "closed": "closed"
+        };
+        this.currentState = this.doorState.closed;
+        this.width = this.size.x;
+        this.elementaryAngle = 2;
+        this.radius = this.width / (90 / this.elementaryAngle) * (Math.PI / 2);
+      }
+
+      Door.prototype.open = function() {
+        if (this.currentState === this.doorState.closed) {
+          return this.currentState = this.doorState.opening;
+        }
+      };
+
+      Door.prototype.close = function() {
+        if (this.currentState === this.doorState.opened) {
+          return this.currentState = this.doorState.closing;
+        }
+      };
+
+      Door.prototype.moving = function() {
+        var deltaX, deltaZ, funcX, funcZ, ky;
+        if (this.currentState === this.doorState.opening || this.currentState === this.doorState.closing) {
+          funcX = Math.sin(this.angle);
+          funcZ = Math.cos(this.angle);
+          deltaZ = 1;
+          if (this.openingDirection === "Left") {
+            ky = -1;
+            deltaX = -1;
+          } else {
+            ky = 1;
+            deltaX = 1;
+          }
+          if (this.currentState === this.doorState.closing && this.openingType === "swing") {
+            ky *= -1;
+            deltaZ *= -1;
+            deltaX *= -1;
+            funcX = Math.cos(this.angle);
+            funcZ = Math.sin(this.angle);
+          }
+          if (this.openingType === "slide") {
+            ky = 0;
+            deltaZ = 0;
+            deltaX *= this.currentState === this.doorState.opening ? 2 : -2;
+          }
+          this.rotation.y += (Math.PI / 180 * this.elementaryAngle) * ky;
+          this.position.x += deltaX * (this.radius / 2 * funcX);
+          this.position.z += deltaZ * (this.radius / 2 * funcZ);
+          this.angle += Math.PI / 180 * this.elementaryAngle;
+          if (this.currentState === this.doorState.opening) {
+            if (Math.abs(this.angle) >= Math.PI / 2) {
+              this.angle = 0;
+              return this.currentState = this.doorState.opened;
+            }
+          } else {
+            if (Math.abs(this.angle) >= Math.PI / 2) {
+              this.angle = 0;
+              return this.currentState = this.doorState.closed;
+            }
+          }
+        }
+      };
+
+      return Door;
+
+    })(Border);
+  });
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  define('showcase',['utils', 'border', 'physicalObject', 'materials', 'dimension', 'door'], function(Utils, Border, physicalObject, Materials, Dimension, Door) {
     var ShowCase;
     return ShowCase = (function(superClass) {
       extend(ShowCase, superClass);
@@ -982,9 +1057,9 @@ define("../bower_components/almond/almond", function(){});
         this.borderWidth = 0.5;
         this.shelfs = [];
         this.borders = {
-          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.backBorderMaterial, "yz"),
-          'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy"),
-          'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy")
+          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
+          'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.backBorderMaterial, "xy"),
+          'frontBorder': new Door(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide")
         };
         this.bottomStoragePlace = new Utils.place(this.place.x, this.place.y - this.size.y / 2 - this.bottomStorageHeigth / 2, this.place.z);
         this.topStoragePlace = new Utils.place(this.place.x, this.place.y + this.size.y / 2 + this.topStorageHeight / 2, this.place.z);
@@ -1109,7 +1184,7 @@ define("../bower_components/almond/almond", function(){});
     var engine, i, obj;
     engine = new Engine;
     i = 20;
-    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.size(10, 60, 20), Materials.glass, Materials.wood, 10, 3, Materials.panel);
+    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.wood, 10, 3, Materials.panel);
     engine.addToScene(obj);
     obj.addShelf(15);
     obj.addShelf(30);
@@ -1137,7 +1212,7 @@ define("../bower_components/almond/almond", function(){});
         return obj.addShelf(shelf.position.y + obj.size.y / 2);
       });
     };
-    return document.getElementById('addShowCase').onclick = function() {
+    document.getElementById('addShowCase').onclick = function() {
       obj = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
       engine.addToScene(obj);
       obj.addShelf(15);
@@ -1145,6 +1220,15 @@ define("../bower_components/almond/almond", function(){});
       obj.addShelf(45);
       return i += 20;
     };
+    document.getElementById('openDoor').onclick = function() {
+      return obj.borders["frontBorder"].open();
+    };
+    document.getElementById('closeDoor').onclick = function() {
+      return obj.borders["frontBorder"].close();
+    };
+    return engine.addEventListener("render", function() {
+      return obj.borders["frontBorder"].moving();
+    });
   });
 
 }).call(this);

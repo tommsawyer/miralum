@@ -13,12 +13,12 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 				'rightBorder': new Border(
 					new Utils.place(@place.x + @size.x / 2, @place.y, @place.z ), 
 					new Utils.size(@borderWidth, @size.y, @size.z),
-					@backBorderMaterial,
+					@borderMaterial,
 					"yz"),
 				'backBorder': new Border(
 					new Utils.place(@place.x, @place.y, @place.z- @size.z/ 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
-					@borderMaterial,
+					@backBorderMaterial,
 					"xy"),
 				'frontBorder': new Door(
 					new Utils.place(@place.x, @place.y, @place.z+ @size.z/ 2), 
