@@ -1,4 +1,4 @@
-require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine, physicalObject, Utils, Materials, ShowCase) ->
+require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border'], (Engine, physicalObject, Utils, Materials, ShowCase, Border) ->
 	engine = new Engine
 	i = 20
 	obj = new ShowCase new Utils.place(0,0,0), new Utils.size(10,60,20), Materials.glass, Materials.wood, 10, 3, Materials.panel
@@ -7,7 +7,7 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine,
 	obj.addShelf 30
 	obj.addShelf 45
 
-	obj.borders["leftBorder"].door = on
+	#obj.borders["leftBorder"].door = on
 
 	document.getElementById('changeCamera').onclick = ->
 		do engine.nextCamera
@@ -25,8 +25,10 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase'], (Engine,
 		do obj.toggleDimensions
 
 	document.getElementById('addShelf').onclick = ->
-		height = document.getElementById('shelfHeight').value
-		obj.addShelf height
+			bord = new Border(new Utils.place(0,0,0), new Utils.size(10,1,20), Materials.wood)
+			engine.addToScene bord
+			engine.controls.createControllableObject bord, (shelf) ->
+				obj.addShelf (shelf.position.y + obj.size.y / 2)
 
 
 	document.getElementById('addShowCase').onclick = ->

@@ -5,11 +5,11 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, B
 			@borderWidth = 0.5
 			@shelfs = []
 			@borders = {
-				'leftBorder': new Border(
-					new Utils.place(@place.x - @size.x / 2, @place.y, @place.z ), 
-					new Utils.size(@borderWidth, @size.y, @size.z),
-					@borderMaterial,
-					"yz"),
+				# 'leftBorder': new Border(
+				# 	new Utils.place(@place.x - @size.x / 2, @place.y, @place.z ), 
+				# 	new Utils.size(@borderWidth, @size.y, @size.z),
+				# 	@borderMaterial,
+				# 	"yz"),
 				'rightBorder': new Border(
 					new Utils.place(@place.x + @size.x / 2, @place.y, @place.z ), 
 					new Utils.size(@borderWidth, @size.y, @size.z),
@@ -135,10 +135,6 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, B
 									Materials.winding
 								);
 				return borderWinding
-				
-
-				
-
 
 			@add @borders[borderName] for borderName in Object.keys @borders
 			@add @storageStands[storageName][ind2] for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands

@@ -1,10 +1,25 @@
-define ['utils'], (Utils) ->
-	class Controls
+define ['utils', 'interface'], (Utils, Interface) ->
+	class Controls extends THREE.EventDispatcher
 		constructor: (@canvas, @engine) ->
 			@raycaster = new THREE.Raycaster
-			@mouse = new THREE.Vector2
 			@canvas.addEventListener 'mousemove', @onMouseMove, false
 			@canvas.addEventListener 'mousedown', @onMouseClick, false
+			@mouse = new THREE.Vector3
+
+			@state = {
+				activeState: 'waiting',
+				waiting: {
+					mouseMove: @findIntersect,
+					mouseClick: @clickOnObject,
+				},
+				controlObject: {
+					mouseMove: @moveControllableObject,
+					mouseClick: @removeControllableObject,
+				}
+			}
+
+			@controllableObject = null
+
 			@activeMesh = {
 				object: null,
 				material: null
@@ -15,19 +30,16 @@ define ['utils'], (Utils) ->
 				opacity: 0.3
 				}	
 
-			@blockInfo = document.getElementById('blockInfo')
-			@blockName = document.getElementById('blockName')
-			@blockWidth = document.getElementById('blockWidth')
-			@blockHeight = document.getElementById('blockHeight')
-
 		onMouseClick: (event) =>
-			@activeMesh.object.parent.click event unless @activeMesh.object == null
-			@engine.viewObject @activeMesh.object.parent
+			do @state[@state.activeState].mouseClick
 
 		onMouseMove: (event) =>
 			do event.preventDefault
+
 			@mouse.x = ( event.clientX / @canvas.width ) * 2 - 1
 			@mouse.y = - ( event.clientY / @canvas.height ) * 2 + 1.3
+
+			do @state[@state.activeState].mouseMove
 
 		setActiveMesh: (mesh) ->
 			unless @activeMesh.object == mesh && @activeMesh.object != null
@@ -35,12 +47,20 @@ define ['utils'], (Utils) ->
 				@activeMesh.object = mesh
 				@activeMesh.material = mesh.material
 				@activeMesh.object.material = @material
-				sizes = Utils.getObjectSize @activeMesh.object
-				@fillBlockFields true, @activeMesh.object.type, sizes.x, sizes.y
 
-		findIntersect: (scene, camera) ->
-			@raycaster.setFromCamera @mouse, camera
-			intersects = @raycaster.intersectObjects scene.children, true
+		clickOnObject: =>
+			if @activeMesh.object == null
+				Interface.fillBlockFields false
+				return
+
+			sizes = Utils.getObjectSize @activeMesh.object
+			Interface.fillBlockFields true, @activeMesh.object.type, sizes.x, sizes.y
+			@activeMesh.object.parent.click event
+			@engine.viewObject @activeMesh.object.parent
+
+		findIntersect: =>
+			@raycaster.setFromCamera @mouse, @engine.camera
+			intersects = @raycaster.intersectObjects @engine.scene.children, true
 
 			if intersects.length > 0 
 				unless intersects.first() == @activeMesh.object
@@ -48,14 +68,31 @@ define ['utils'], (Utils) ->
 			else
 				@activeMesh.object.material = @activeMesh.material unless @activeMesh.object == null
 				@activeMesh.object = null
-				@fillBlockFields false
-				@selected = null
 
-		fillBlockFields: (visible, name, width, height) ->
-			if visible 
-				@blockInfo.style.display = 'block' 
-				@blockName.innerText  = name
-				@blockWidth.innerText  = width
-				@blockHeight.innerText = height
-			else 
-				@blockInfo.style.display = 'none'
+		moveControllableObject: =>
+			if @controllableObject
+				vector = @mouse.unproject @engine.camera
+				dir = do vector.sub(@engine.camera.position).normalize
+				distance = - @engine.camera.position.x / dir.x
+				pos = @engine.camera.position.clone().add dir.multiplyScalar(distance)
+
+				@controllableObject.position.z = pos.z
+				@controllableObject.position.y = pos.y
+
+		createControllableObject: (object, callback) ->
+			@state.activeState = 'controlObject'
+			@controllableObject = object
+
+			@addEventListener 'remove', (event) ->
+				callback event.detail
+
+		removeControllableObject: =>
+			event = new CustomEvent 'remove', {
+				detail: @controllableObject
+			}
+
+			@dispatchEvent event
+
+			do @controllableObject.remove
+			@controllableObject = null
+			@state.activeState = 'waiting'

@@ -53,7 +53,6 @@ define ['controls', 'utils'], (Controls, Utils) ->
 		run: ->
 			renderScene = =>
 				@dispatchEvent @event
-				@controls.findIntersect @scene, @camera
 				requestAnimationFrame renderScene
 				@renderer.render @scene, @camera
 			do renderScene
@@ -71,7 +70,7 @@ define ['controls', 'utils'], (Controls, Utils) ->
 
 		_initializeSpotilights: ->
 			spotlight = new THREE.AmbientLight 0xffffff
-			spotlight.position.set -30, 30, -10
+			spotlight.position.set -60, 30, -10
 			@scene.add spotlight
 			spotlight.position.set 32, 30, 0
 			@scene.add spotlight

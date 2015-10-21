@@ -26,7 +26,7 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 			@dispatchEvent event
 
 		remove: ->
-			removeChildrenObject @
+			@removeChildrenObject @
 
 		toggleDimensions: ->
 			unless @dimension

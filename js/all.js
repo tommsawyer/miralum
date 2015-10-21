@@ -469,81 +469,17 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
-  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-  define('controls',['utils'], function(Utils) {
-    var Controls;
-    return Controls = (function() {
-      function Controls(canvas, engine) {
-        this.canvas = canvas;
-        this.engine = engine;
-        this.onMouseMove = bind(this.onMouseMove, this);
-        this.onMouseClick = bind(this.onMouseClick, this);
-        this.raycaster = new THREE.Raycaster;
-        this.mouse = new THREE.Vector2;
-        this.canvas.addEventListener('mousemove', this.onMouseMove, false);
-        this.canvas.addEventListener('mousedown', this.onMouseClick, false);
-        this.activeMesh = {
-          object: null,
-          material: null
-        };
-        this.material = new THREE.MeshLambertMaterial({
-          color: 0x00ff00,
-          transparent: true,
-          opacity: 0.3
-        });
+  define('interface',[], function() {
+    var Interface;
+    Interface = (function() {
+      function Interface() {
         this.blockInfo = document.getElementById('blockInfo');
         this.blockName = document.getElementById('blockName');
         this.blockWidth = document.getElementById('blockWidth');
         this.blockHeight = document.getElementById('blockHeight');
       }
 
-      Controls.prototype.onMouseClick = function(event) {
-        if (this.activeMesh.object !== null) {
-          this.activeMesh.object.parent.click(event);
-        }
-        return this.engine.viewObject(this.activeMesh.object.parent);
-      };
-
-      Controls.prototype.onMouseMove = function(event) {
-        event.preventDefault();
-        this.mouse.x = (event.clientX / this.canvas.width) * 2 - 1;
-        return this.mouse.y = -(event.clientY / this.canvas.height) * 2 + 1.3;
-      };
-
-      Controls.prototype.setActiveMesh = function(mesh) {
-        var sizes;
-        if (!(this.activeMesh.object === mesh && this.activeMesh.object !== null)) {
-          if (this.activeMesh.object !== null) {
-            this.activeMesh.object.material = this.activeMesh.material;
-          }
-          this.activeMesh.object = mesh;
-          this.activeMesh.material = mesh.material;
-          this.activeMesh.object.material = this.material;
-          sizes = Utils.getObjectSize(this.activeMesh.object);
-          return this.fillBlockFields(true, this.activeMesh.object.type, sizes.x, sizes.y);
-        }
-      };
-
-      Controls.prototype.findIntersect = function(scene, camera) {
-        var intersects;
-        this.raycaster.setFromCamera(this.mouse, camera);
-        intersects = this.raycaster.intersectObjects(scene.children, true);
-        if (intersects.length > 0) {
-          if (intersects.first() !== this.activeMesh.object) {
-            return this.setActiveMesh(intersects.first().object);
-          }
-        } else {
-          if (this.activeMesh.object !== null) {
-            this.activeMesh.object.material = this.activeMesh.material;
-          }
-          this.activeMesh.object = null;
-          this.fillBlockFields(false);
-          return this.selected = null;
-        }
-      };
-
-      Controls.prototype.fillBlockFields = function(visible, name, width, height) {
+      Interface.prototype.fillBlockFields = function(visible, name, width, height) {
         if (visible) {
           this.blockInfo.style.display = 'block';
           this.blockName.innerText = name;
@@ -554,9 +490,144 @@ define("../bower_components/almond/almond", function(){});
         }
       };
 
-      return Controls;
+      return Interface;
 
     })();
+    return new Interface;
+  });
+
+}).call(this);
+
+(function() {
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  define('controls',['utils', 'interface'], function(Utils, Interface) {
+    var Controls;
+    return Controls = (function(superClass) {
+      extend(Controls, superClass);
+
+      function Controls(canvas, engine) {
+        this.canvas = canvas;
+        this.engine = engine;
+        this.removeControllableObject = bind(this.removeControllableObject, this);
+        this.moveControllableObject = bind(this.moveControllableObject, this);
+        this.findIntersect = bind(this.findIntersect, this);
+        this.clickOnObject = bind(this.clickOnObject, this);
+        this.onMouseMove = bind(this.onMouseMove, this);
+        this.onMouseClick = bind(this.onMouseClick, this);
+        this.raycaster = new THREE.Raycaster;
+        this.canvas.addEventListener('mousemove', this.onMouseMove, false);
+        this.canvas.addEventListener('mousedown', this.onMouseClick, false);
+        this.mouse = new THREE.Vector3;
+        this.state = {
+          activeState: 'waiting',
+          waiting: {
+            mouseMove: this.findIntersect,
+            mouseClick: this.clickOnObject
+          },
+          controlObject: {
+            mouseMove: this.moveControllableObject,
+            mouseClick: this.removeControllableObject
+          }
+        };
+        this.controllableObject = null;
+        this.activeMesh = {
+          object: null,
+          material: null
+        };
+        this.material = new THREE.MeshLambertMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0.3
+        });
+      }
+
+      Controls.prototype.onMouseClick = function(event) {
+        return this.state[this.state.activeState].mouseClick();
+      };
+
+      Controls.prototype.onMouseMove = function(event) {
+        event.preventDefault();
+        this.mouse.x = (event.clientX / this.canvas.width) * 2 - 1;
+        this.mouse.y = -(event.clientY / this.canvas.height) * 2 + 1.3;
+        return this.state[this.state.activeState].mouseMove();
+      };
+
+      Controls.prototype.setActiveMesh = function(mesh) {
+        if (!(this.activeMesh.object === mesh && this.activeMesh.object !== null)) {
+          if (this.activeMesh.object !== null) {
+            this.activeMesh.object.material = this.activeMesh.material;
+          }
+          this.activeMesh.object = mesh;
+          this.activeMesh.material = mesh.material;
+          return this.activeMesh.object.material = this.material;
+        }
+      };
+
+      Controls.prototype.clickOnObject = function() {
+        var sizes;
+        if (this.activeMesh.object === null) {
+          Interface.fillBlockFields(false);
+          return;
+        }
+        sizes = Utils.getObjectSize(this.activeMesh.object);
+        Interface.fillBlockFields(true, this.activeMesh.object.type, sizes.x, sizes.y);
+        this.activeMesh.object.parent.click(event);
+        return this.engine.viewObject(this.activeMesh.object.parent);
+      };
+
+      Controls.prototype.findIntersect = function() {
+        var intersects;
+        this.raycaster.setFromCamera(this.mouse, this.engine.camera);
+        intersects = this.raycaster.intersectObjects(this.engine.scene.children, true);
+        if (intersects.length > 0) {
+          if (intersects.first() !== this.activeMesh.object) {
+            return this.setActiveMesh(intersects.first().object);
+          }
+        } else {
+          if (this.activeMesh.object !== null) {
+            this.activeMesh.object.material = this.activeMesh.material;
+          }
+          return this.activeMesh.object = null;
+        }
+      };
+
+      Controls.prototype.moveControllableObject = function() {
+        var dir, distance, pos, vector;
+        if (this.controllableObject) {
+          vector = this.mouse.unproject(this.engine.camera);
+          dir = vector.sub(this.engine.camera.position).normalize();
+          distance = -this.engine.camera.position.x / dir.x;
+          pos = this.engine.camera.position.clone().add(dir.multiplyScalar(distance));
+          this.controllableObject.position.z = pos.z;
+          return this.controllableObject.position.y = pos.y;
+        }
+      };
+
+      Controls.prototype.createControllableObject = function(object, callback) {
+        this.state.activeState = 'controlObject';
+        this.controllableObject = object;
+        return this.addEventListener('remove', function(event) {
+          return callback(event.detail);
+        });
+      };
+
+      Controls.prototype.removeControllableObject = function() {
+        var event;
+        event = new CustomEvent('remove', {
+          detail: this.controllableObject
+        });
+        this.dispatchEvent(event);
+        this.controllableObject.remove();
+        this.controllableObject = null;
+        return this.state.activeState = 'waiting';
+      };
+
+      return Controls;
+
+    })(THREE.EventDispatcher);
   });
 
 }).call(this);
@@ -641,7 +712,6 @@ define("../bower_components/almond/almond", function(){});
         renderScene = (function(_this) {
           return function() {
             _this.dispatchEvent(_this.event);
-            _this.controls.findIntersect(_this.scene, _this.camera);
             requestAnimationFrame(renderScene);
             return _this.renderer.render(_this.scene, _this.camera);
           };
@@ -660,7 +730,7 @@ define("../bower_components/almond/almond", function(){});
       Engine.prototype._initializeSpotilights = function() {
         var spotlight;
         spotlight = new THREE.AmbientLight(0xffffff);
-        spotlight.position.set(-30, 30, -10);
+        spotlight.position.set(-60, 30, -10);
         this.scene.add(spotlight);
         spotlight.position.set(32, 30, 0);
         return this.scene.add(spotlight);
@@ -817,7 +887,7 @@ define("../bower_components/almond/almond", function(){});
       };
 
       PhysicalObject.prototype.remove = function() {
-        return removeChildrenObject(this);
+        return this.removeChildrenObject(this);
       };
 
       PhysicalObject.prototype.toggleDimensions = function() {
@@ -912,7 +982,6 @@ define("../bower_components/almond/almond", function(){});
         this.borderWidth = 0.5;
         this.shelfs = [];
         this.borders = {
-          'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
           'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.backBorderMaterial, "yz"),
           'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy"),
           'frontBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy")
@@ -1036,7 +1105,7 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
-  require(['engine', 'physicalObject', 'utils', 'materials', 'showcase'], function(Engine, physicalObject, Utils, Materials, ShowCase) {
+  require(['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border'], function(Engine, physicalObject, Utils, Materials, ShowCase, Border) {
     var engine, i, obj;
     engine = new Engine;
     i = 20;
@@ -1045,7 +1114,6 @@ define("../bower_components/almond/almond", function(){});
     obj.addShelf(15);
     obj.addShelf(30);
     obj.addShelf(45);
-    obj.borders["leftBorder"].door = true;
     document.getElementById('changeCamera').onclick = function() {
       return engine.nextCamera();
     };
@@ -1062,9 +1130,12 @@ define("../bower_components/almond/almond", function(){});
       return obj.toggleDimensions();
     };
     document.getElementById('addShelf').onclick = function() {
-      var height;
-      height = document.getElementById('shelfHeight').value;
-      return obj.addShelf(height);
+      var bord;
+      bord = new Border(new Utils.place(0, 0, 0), new Utils.size(10, 1, 20), Materials.wood);
+      engine.addToScene(bord);
+      return engine.controls.createControllableObject(bord, function(shelf) {
+        return obj.addShelf(shelf.position.y + obj.size.y / 2);
+      });
     };
     return document.getElementById('addShowCase').onclick = function() {
       obj = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
