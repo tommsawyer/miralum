@@ -1,4 +1,4 @@
-define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, Border, physicalObject, Materials, Dimension) ->
+define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (Utils, Border, physicalObject, Materials, Dimension, Door) ->
 	class ShowCase extends physicalObject
 		constructor: (@place, @size, @borderMaterial, @backBorderMaterial, @bottomStorageHeigth, @topStorageHeight, @storageMaterial) ->
 			super(@place, @size, @borderMaterial)
@@ -20,11 +20,13 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension'], (Utils, B
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial,
 					"xy"),
-				'frontBorder': new Border(
+				'frontBorder': new Door(
 					new Utils.place(@place.x, @place.y, @place.z+ @size.z/ 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial,
-					"xy"),
+					"xy",
+					"Left",
+					"slide"),
 			}
 
 			@bottomStoragePlace = new Utils.place @place.x, @place.y - @size.y / 2 - @bottomStorageHeigth/2, @place.z
