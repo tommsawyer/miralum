@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
 	<link rel="stylesheet" href="css/main.css">
 	<script src='bower_components/three.js/three.js'></script>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 </head>
 <body>
 	<div class="container">
@@ -18,7 +19,7 @@
 		<button id='cameraUp' class='btn btn-default'>+</button>
 		<button id='cameraDown' class='btn btn-default'>-</button>
 		<button id='toggleDimensions' class='btn btn-default'>Вкл/выкл размеры</button>
-		<div id="blockInfo">
+		<div id="blockInfo" class='form'>
 			<h4 id='blockName'>Название</h4>
 			<table class='table'>
 				<tr>
@@ -30,7 +31,9 @@
 					<td id='blockHeight'> </td>
 				</tr>
 				<tr>
-					<button id='addShelf'> Добавить полку </button>
+					<td colspan="2">
+						<button id='addShelf' class='btn btn-default button'> Добавить полку </button>
+					</td>
 				</tr>
 			</table>
 		</div>

@@ -29,7 +29,6 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border']
 			engine.controls.createControllableObject bord, (shelf) ->
 				obj.addShelf (shelf.position.y + obj.size.y / 2)
 
-
 	document.getElementById('addShowCase').onclick = ->
 		obj = new ShowCase new Utils.place(0,0,i), new Utils.place(10,60,20), Materials.glass
 		engine.addToScene obj

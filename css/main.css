@@ -6,15 +6,24 @@ body {
 	background-image: url(../img/background.png);
 	height: 100%;
 	overflow: hidden;
+	font-family: 'Open Sans', sans-serif;
+}
+
+.button {
+	width: 100%;
+}
+
+.form {
+	border-radius: 10px;
+	background-color: rgba(100, 100, 100, .5);
+	box-shadow: 1px 1px 10px rgba(0,0,0,0.5);
 }
 
 #blockInfo {
 	position: absolute;
 	width: 200px;
-	height: 200px;
-	background-color: rgba(100,100,100,.5);
-	left: 0;
-	bottom: 0;
+	left: 10px;
+	bottom: 10px;
 	display: none;
 }
 

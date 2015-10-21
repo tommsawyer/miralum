@@ -490,6 +490,33 @@ define("../bower_components/almond/almond", function(){});
         }
       };
 
+
+      /*
+      			Пример конфига кнопки:
+      				{
+      					label: 'Добавить полку',
+      					onclick: functionName
+      				}
+       */
+
+      Interface.prototype.createButtonsMarkup = function(buttons) {
+        var btn, button, i, len, results, td, tr;
+        results = [];
+        for (i = 0, len = buttons.length; i < len; i++) {
+          button = buttons[i];
+          btn = document.createElement('button');
+          btn.onclick = button['onclick'];
+          btn.innerText = button['label'];
+          td = document.createElement('td');
+          td.colSpan = 2;
+          td.appendChild(btn);
+          tr = document.createElement('tr');
+          tr.appendChild(td);
+          results.push(tr);
+        }
+        return results;
+      };
+
       return Interface;
 
     })();
