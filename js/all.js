@@ -1135,13 +1135,13 @@ define("../bower_components/almond/almond", function(){});
         this.borderWidth = 0.5;
         this.shelfs = [];
         this.borders = {
-          'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
-          'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
-          'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.backBorderMaterial, "xy"),
-          'frontBorder': new Door(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide", true)
+          'leftBorder': new Border(new Utils.place(-this.size.x / 2, 0, 0), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
+          'rightBorder': new Border(new Utils.place(this.size.x / 2, 0, 0), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
+          'backBorder': new Border(new Utils.place(0, 0, -this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.backBorderMaterial, "xy"),
+          'frontBorder': new Door(new Utils.place(0, 0, this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide", true)
         };
-        this.bottomStoragePlace = new Utils.place(this.place.x, this.place.y - this.size.y / 2 - this.bottomStorageHeigth / 2, this.place.z);
-        this.topStoragePlace = new Utils.place(this.place.x, this.place.y + this.size.y / 2 + this.topStorageHeight / 2, this.place.z);
+        this.bottomStoragePlace = new Utils.place(0, -this.size.y / 2 - this.bottomStorageHeigth / 2, 0);
+        this.topStoragePlace = new Utils.place(0, 0 + this.size.y / 2 + this.topStorageHeight / 2, 0);
         this.storageStands = {
           'bottomStorage': {
             'leftBorder': new Border(new Utils.place(this.bottomStoragePlace.x - this.size.x / 2, this.bottomStoragePlace.y, this.bottomStoragePlace.z), new Utils.size(this.borderWidth, this.bottomStorageHeigth, this.size.z), this.storageMaterial, "yz"),

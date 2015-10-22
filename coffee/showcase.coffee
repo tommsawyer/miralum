@@ -6,22 +6,22 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@shelfs = []
 			@borders = {
 				'leftBorder': new Border(
-				 	new Utils.place(@place.x - @size.x / 2, @place.y, @place.z ), 
+				 	new Utils.place(- @size.x / 2, 0, 0), 
 				 	new Utils.size(@borderWidth, @size.y, @size.z),
 				 	@borderMaterial,
 				 	"yz"),
 				'rightBorder': new Border(
-					new Utils.place(@place.x + @size.x / 2, @place.y, @place.z ), 
+					new Utils.place(@size.x / 2, 0, 0), 
 					new Utils.size(@borderWidth, @size.y, @size.z),
 					@borderMaterial,
 					"yz"),
 				'backBorder': new Border(
-					new Utils.place(@place.x, @place.y, @place.z- @size.z/ 2), 
+					new Utils.place(0, 0,- @size.z/ 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@backBorderMaterial,
 					"xy"),
 				'frontBorder': new Door(
-					new Utils.place(@place.x, @place.y, @place.z+ @size.z/ 2), 
+					new Utils.place(0, 0, @size.z/ 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial,
 					"xy",
@@ -30,8 +30,8 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					true),
 			}
 
-			@bottomStoragePlace = new Utils.place @place.x, @place.y - @size.y / 2 - @bottomStorageHeigth/2, @place.z
-			@topStoragePlace = new Utils.place @place.x, @place.y + @size.y / 2 + @topStorageHeight / 2, @place.z
+			@bottomStoragePlace = new Utils.place 0, - @size.y / 2 - @bottomStorageHeigth/2, 0
+			@topStoragePlace = new Utils.place 0, 0 + @size.y / 2 + @topStorageHeight / 2, 0
 			# Накопители
 			@storageStands = {
 				'bottomStorage': {
