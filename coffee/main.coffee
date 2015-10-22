@@ -24,7 +24,7 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border']
 		do obj.toggleDimensions
 
 	document.getElementById('addShelf').onclick = ->
-			bord = new Border(new Utils.place(0,0,0), new Utils.size(10,1,20), Materials.wood)
+			bord = new Border(new Utils.place(0,0,0), new Utils.size(20,1,10), Materials.wood)
 			engine.addToScene bord
 			engine.controls.createControllableObject bord, (shelf) ->
 				obj.addShelf (shelf.position.y + obj.size.y / 2)

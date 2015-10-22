@@ -4,6 +4,8 @@ coffee    = require 'gulp-coffee'
 rjs	 	 = require 'gulp-requirejs'
 uglify 	 = require 'gulp-uglify'
 clean 	 = require 'gulp-clean'
+ftp 		 = require 'vinyl-ftp'
+gutil 	=  require 'gulp-util'
 
 gulp.task 'connect', ->
 	connect.server 
@@ -35,5 +37,26 @@ gulp.task 'watch', ->
 	gulp.watch 'coffee/*.coffee', ['build']
 	gulp.watch 'index.html', -> do connect.reload
 	gulp.watch 'css/*.css', -> do connect.reload
+
+gulp.task 'prod', ->
+	conn = ftp.create {
+		host: 'blake.beget.ru',
+		user: 'mortraei',
+		password: 'rOaAPr14',
+		parrallel: 10,
+		log: gutil.log
+	}
+
+	globs = [
+		'bower_components/**',
+		'css/**',
+		'img/**',
+		'js/**',
+		'index.html'
+	]
+
+	gulp.src globs, {base: '.', buffer: false}
+		.pipe conn.newer '/mortraei.bget.ru/public_html'
+		.pipe conn.dest '/mortraei.bget.ru/public_html'
 
 gulp.task 'default', ['connect', 'watch', 'build']

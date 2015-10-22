@@ -1196,7 +1196,7 @@ define("../bower_components/almond/almond", function(){});
 
       ShowCase.prototype.addShelf = function(height) {
         this.shelfs.push(new Border(new Utils.place(this.place.x, height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.wood));
-        return this.addChildrenObject.call(this, this.shelfs[this.shelfs.length - 1]);
+        return this.addChildrenObject.call(this, this.shelfs.last());
       };
 
       return ShowCase;
@@ -1233,7 +1233,7 @@ define("../bower_components/almond/almond", function(){});
     };
     document.getElementById('addShelf').onclick = function() {
       var bord;
-      bord = new Border(new Utils.place(0, 0, 0), new Utils.size(10, 1, 20), Materials.wood);
+      bord = new Border(new Utils.place(0, 0, 0), new Utils.size(20, 1, 10), Materials.wood);
       engine.addToScene(bord);
       return engine.controls.createControllableObject(bord, function(shelf) {
         return obj.addShelf(shelf.position.y + obj.size.y / 2);

@@ -153,4 +153,4 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					new Utils.size(@size.x, @borderWidth, @size.z),
 					Materials.wood
 				)
-			@addChildrenObject.call @, @shelfs[@shelfs.length - 1]
+			@addChildrenObject.call @, @shelfs.last()
