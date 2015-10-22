@@ -1,9 +1,7 @@
-define ['physicalObject', 'border'], (physicalObject, Border) ->
+define ['physicalObject', 'border', 'utils'], (physicalObject, Border, Utils) ->
 	class Door extends Border
-		constructor: (@place, @size, @material, @planeName, @openingDirection, @openingType) ->
-			super(@place, @size, @material, @planeName)
-			@angle = 0
-
+		constructor: (@place, @size, @material, @planeName, @openingDirection, @openingType, @isDouble = false) ->
+			
 			@doorState = {
 				"opened",
 				"opening", 
@@ -11,20 +9,55 @@ define ['physicalObject', 'border'], (physicalObject, Border) ->
 				"closed"
 			}
 
-			@currentState = @doorState.closed
-			@width = @.size.x
-			@elementaryAngle = 2
-			@radius = @width / (90 / @elementaryAngle) * (Math.PI/2)
+			if @isDouble
+				@obj = new THREE.Object3D
+				rightFlapPlace = new Utils.place @place.x + @size.x / 4, @place.y, @place.z
+				rightFlapSize = new Utils.size @size.x / 2, @size.y, @size.z
+				rightFlapOpeningDirection = "Right"
+				rightFlap = new Door rightFlapPlace, rightFlapSize, @material, @planeName, rightFlapOpeningDirection, @openingType
+
+				@place.x -= @size.x / 4
+				@size.x /= 2
+				@openingDirection = "Left"
+				leftFlap = new Door @place, @size, @material, @planeName, "Left", @openingType
+				@obj.add rightFlap
+				@obj.add leftFlap
+				@obj.place = @place
+				@obj.size = @size
+				@obj.moving = @moving
+				@obj.open = @open
+				@obj.close = @close
+				@obj.doorState = @doorState
+				@obj.isDouble = @isDouble
+				return	@obj
+			else
+				super(@place, @size, @material, @planeName)
+				@angle = 0
+				@currentState = @doorState.closed
+				@width = @.size.x
+				@elementaryAngle = 2
+				@radius = @width / (90 / @elementaryAngle) * (Math.PI/2)	
+
 
 		open: ->
+			if @isDouble
+				for item in @.children
+					if item.currentState == item.doorState.closed
+						item.currentState = item.doorState.opening
 			if @currentState == @doorState.closed
 				@currentState = @doorState.opening
 
 		close: ->
+			if @isDouble
+				for item in @.children
+					if item.currentState == item.doorState.opened
+						item.currentState = item.doorState.closing
 			if @currentState == @doorState.opened
 				@currentState = @doorState.closing
 
 		moving: ->
+			if @isDouble
+				do item.moving for item in @.children
 			if @currentState == @doorState.opening or @currentState == @doorState.closing
 				funcX = Math.sin(@angle)
 				funcZ = Math.cos(@angle)

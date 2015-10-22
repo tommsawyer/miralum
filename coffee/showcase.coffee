@@ -26,7 +26,8 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					@borderMaterial,
 					"xy",
 					"Left",
-					"slide"),
+					"slide",
+					true),
 			}
 
 			@bottomStoragePlace = new Utils.place @place.x, @place.y - @size.y / 2 - @bottomStorageHeigth/2, @place.z
