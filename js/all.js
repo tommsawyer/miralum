@@ -884,10 +884,8 @@ define("../bower_components/almond/almond", function(){});
         this.material = material;
         this.removeChildrenObject = bind(this.removeChildrenObject, this);
         this.addChildrenObject = bind(this.addChildrenObject, this);
-        PhysicalObject.__super__.constructor.call(this);
+        PhysicalObject.__super__.constructor.apply(this, arguments);
         this.dimension = null;
-        this.showCaseGeometry = new THREE.BoxGeometry(this.size.x, this.size.y, this.size.z);
-        this.add(new THREE.Mesh(this.showCaseGeometry, this.material));
         this.position.x = this.place.x;
         this.position.y = this.place.y;
         this.position.z = this.place.z;
@@ -961,6 +959,8 @@ define("../bower_components/almond/almond", function(){});
         this.material = material;
         this.planeName = planeName;
         Border.__super__.constructor.call(this, this.place, this.size, this.material);
+        this.showCaseGeometry = new THREE.BoxGeometry(this.size.x, this.size.y, this.size.z);
+        this.add(new THREE.Mesh(this.showCaseGeometry, this.material));
       }
 
       return Border;
@@ -974,46 +974,97 @@ define("../bower_components/almond/almond", function(){});
   var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  define('door',['physicalObject', 'border'], function(physicalObject, Border) {
+  define('door',['physicalObject', 'border', 'utils'], function(physicalObject, Border, Utils) {
     var Door;
     return Door = (function(superClass) {
       extend(Door, superClass);
 
-      function Door(place, size, material, planeName, openingDirection, openingType) {
+      function Door(place, size, material, planeName, openingDirection, openingType, isDouble) {
+        var leftFlap, rightFlap, rightFlapOpeningDirection, rightFlapPlace, rightFlapSize;
         this.place = place;
         this.size = size;
         this.material = material;
         this.planeName = planeName;
         this.openingDirection = openingDirection;
         this.openingType = openingType;
-        Door.__super__.constructor.call(this, this.place, this.size, this.material, this.planeName);
-        this.angle = 0;
+        this.isDouble = isDouble != null ? isDouble : false;
         this.doorState = {
           "opened": "opened",
           "opening": "opening",
           "closing": "closing",
           "closed": "closed"
         };
-        this.currentState = this.doorState.closed;
-        this.width = this.size.x;
-        this.elementaryAngle = 2;
-        this.radius = this.width / (90 / this.elementaryAngle) * (Math.PI / 2);
+        if (this.isDouble) {
+          this.obj = new THREE.Object3D;
+          rightFlapPlace = new Utils.place(this.place.x + this.size.x / 4, this.place.y, this.place.z);
+          rightFlapSize = new Utils.size(this.size.x / 2, this.size.y, this.size.z);
+          rightFlapOpeningDirection = "Right";
+          rightFlap = new Door(rightFlapPlace, rightFlapSize, this.material, this.planeName, rightFlapOpeningDirection, this.openingType);
+          this.place.x -= this.size.x / 4;
+          this.size.x /= 2;
+          this.openingDirection = "Left";
+          leftFlap = new Door(this.place, this.size, this.material, this.planeName, "Left", this.openingType);
+          this.obj.add(rightFlap);
+          this.obj.add(leftFlap);
+          this.obj.place = this.place;
+          this.obj.size = this.size;
+          this.obj.moving = this.moving;
+          this.obj.open = this.open;
+          this.obj.close = this.close;
+          this.obj.doorState = this.doorState;
+          this.obj.isDouble = this.isDouble;
+          return this.obj;
+        } else {
+          Door.__super__.constructor.call(this, this.place, this.size, this.material, this.planeName);
+          this.angle = 0;
+          this.currentState = this.doorState.closed;
+          this.width = this.size.x;
+          this.elementaryAngle = 2;
+          this.radius = this.width / (90 / this.elementaryAngle) * (Math.PI / 2);
+        }
       }
 
       Door.prototype.open = function() {
+        var i, item, len, ref;
+        if (this.isDouble) {
+          ref = this.children;
+          for (i = 0, len = ref.length; i < len; i++) {
+            item = ref[i];
+            if (item.currentState === item.doorState.closed) {
+              item.currentState = item.doorState.opening;
+            }
+          }
+        }
         if (this.currentState === this.doorState.closed) {
           return this.currentState = this.doorState.opening;
         }
       };
 
       Door.prototype.close = function() {
+        var i, item, len, ref;
+        if (this.isDouble) {
+          ref = this.children;
+          for (i = 0, len = ref.length; i < len; i++) {
+            item = ref[i];
+            if (item.currentState === item.doorState.opened) {
+              item.currentState = item.doorState.closing;
+            }
+          }
+        }
         if (this.currentState === this.doorState.opened) {
           return this.currentState = this.doorState.closing;
         }
       };
 
       Door.prototype.moving = function() {
-        var deltaX, deltaZ, funcX, funcZ, ky;
+        var deltaX, deltaZ, funcX, funcZ, i, item, ky, len, ref;
+        if (this.isDouble) {
+          ref = this.children;
+          for (i = 0, len = ref.length; i < len; i++) {
+            item = ref[i];
+            item.moving();
+          }
+        }
         if (this.currentState === this.doorState.opening || this.currentState === this.doorState.closing) {
           funcX = Math.sin(this.angle);
           funcZ = Math.cos(this.angle);
@@ -1080,13 +1131,14 @@ define("../bower_components/almond/almond", function(){});
         this.bottomStorageHeigth = bottomStorageHeigth;
         this.topStorageHeight = topStorageHeight;
         this.storageMaterial = storageMaterial;
-        ShowCase.__super__.constructor.call(this, this.place, this.size, this.borderMaterial);
+        ShowCase.__super__.constructor.apply(this, arguments);
         this.borderWidth = 0.5;
         this.shelfs = [];
         this.borders = {
+          'leftBorder': new Border(new Utils.place(this.place.x - this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
           'rightBorder': new Border(new Utils.place(this.place.x + this.size.x / 2, this.place.y, this.place.z), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
           'backBorder': new Border(new Utils.place(this.place.x, this.place.y, this.place.z - this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.backBorderMaterial, "xy"),
-          'frontBorder': new Door(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide")
+          'frontBorder': new Door(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide", true)
         };
         this.bottomStoragePlace = new Utils.place(this.place.x, this.place.y - this.size.y / 2 - this.bottomStorageHeigth / 2, this.place.z);
         this.topStoragePlace = new Utils.place(this.place.x, this.place.y + this.size.y / 2 + this.topStorageHeight / 2, this.place.z);
@@ -1190,12 +1242,8 @@ define("../bower_components/almond/almond", function(){});
         }
       }
 
-      ShowCase.prototype.addToScene = function(callback) {
-        return callback(this);
-      };
-
       ShowCase.prototype.addShelf = function(height) {
-        this.shelfs.push(new Border(new Utils.place(this.place.x, height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.wood));
+        this.shelfs.push(new Border(new Utils.place(this.place.x, this.place.y + height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.wood));
         return this.addChildrenObject.call(this, this.shelfs.last());
       };
 
@@ -1211,11 +1259,9 @@ define("../bower_components/almond/almond", function(){});
     var engine, i, obj;
     engine = new Engine;
     i = 20;
-    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.wood, 10, 3, Materials.panel);
+    obj = new ShowCase(new Utils.place(0, 0, -5), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
     engine.addToScene(obj);
-    obj.addShelf(15);
-    obj.addShelf(30);
-    obj.addShelf(45);
+    obj.addShelf(10);
     document.getElementById('changeCamera').onclick = function() {
       return engine.nextCamera();
     };
@@ -1240,12 +1286,13 @@ define("../bower_components/almond/almond", function(){});
       });
     };
     document.getElementById('addShowCase').onclick = function() {
-      obj = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
-      engine.addToScene(obj);
-      obj.addShelf(15);
-      obj.addShelf(30);
-      obj.addShelf(45);
-      return i += 20;
+      var obj2;
+      obj2 = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
+      engine.addToScene(obj2);
+      return engine.controls.createControllableObject(obj2, function(showcase) {
+        console.dir(showcase);
+        return engine.addToScene(showcase);
+      });
     };
     document.getElementById('openDoor').onclick = function() {
       return obj.borders["frontBorder"].open();

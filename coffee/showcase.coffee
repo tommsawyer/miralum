@@ -1,15 +1,15 @@
 define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (Utils, Border, physicalObject, Materials, Dimension, Door) ->
 	class ShowCase extends physicalObject
 		constructor: (@place, @size, @borderMaterial, @backBorderMaterial, @bottomStorageHeigth, @topStorageHeight, @storageMaterial) ->
-			super(@place, @size, @borderMaterial)
+			super
 			@borderWidth = 0.5
 			@shelfs = []
 			@borders = {
-				# 'leftBorder': new Border(
-				# 	new Utils.place(@place.x - @size.x / 2, @place.y, @place.z ), 
-				# 	new Utils.size(@borderWidth, @size.y, @size.z),
-				# 	@borderMaterial,
-				# 	"yz"),
+				'leftBorder': new Border(
+				 	new Utils.place(@place.x - @size.x / 2, @place.y, @place.z ), 
+				 	new Utils.size(@borderWidth, @size.y, @size.z),
+				 	@borderMaterial,
+				 	"yz"),
 				'rightBorder': new Border(
 					new Utils.place(@place.x + @size.x / 2, @place.y, @place.z ), 
 					new Utils.size(@borderWidth, @size.y, @size.z),
@@ -145,12 +145,9 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@add winding @borders[borderName], 1 for borderName in Object.keys @borders
 			@add winding @storageStands[storageName][ind2], 1 for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
-		addToScene: (callback) ->
-			 callback @
-
 		addShelf: (height) ->
 			@shelfs.push new Border(
-					new Utils.place(@place.x,height - @size.y /2, @place.z), 
+					new Utils.place(@place.x, @place.y + height - @size.y /2, @place.z), 
 					new Utils.size(@size.x, @borderWidth, @size.z),
 					Materials.wood
 				)

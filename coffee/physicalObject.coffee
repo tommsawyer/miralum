@@ -1,16 +1,13 @@
 define ['materials', 'dimension'], (Materials, Dimension) ->
 	class PhysicalObject extends THREE.Object3D
 		constructor: (@place, @size, @material) ->
-			super()
+			super
 			
 			@dimension = null
-			@showCaseGeometry = new THREE.BoxGeometry @size.x, @size.y, @size.z
-			#showCaseMaterial = @material
+			@position.x = @place.x
+			@position.y = @place.y
+			@position.z = @place.z
 
-			@.add new THREE.Mesh @showCaseGeometry, @material
-			@.position.x = @place.x
-			@.position.y = @place.y
-			@.position.z = @place.z
 		addToScene: (callback) ->
 			callback @
 
@@ -19,6 +16,7 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 				detail: object
 			}
 			@dispatchEvent event
+
 		removeChildrenObject: (object) =>
 			event = new CustomEvent 'removeObject', {
 				detail: object
