@@ -6,22 +6,22 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@shelfs = []
 			@borders = {
 				'leftBorder': new Border(
-				 	new Utils.place(- @size.x / 2, 0, 0), 
+				 	new Utils.place(- @size.x / 2 + @borderWidth / 2, 0, 0), 
 				 	new Utils.size(@borderWidth, @size.y, @size.z),
 				 	@borderMaterial,
 				 	"yz"),
 				'rightBorder': new Border(
-					new Utils.place(@size.x / 2, 0, 0), 
+					new Utils.place(@size.x / 2 - @borderWidth / 2, 0, 0), 
 					new Utils.size(@borderWidth, @size.y, @size.z),
 					@borderMaterial,
 					"yz"),
 				'backBorder': new Border(
-					new Utils.place(0, 0,- @size.z/ 2), 
+					new Utils.place(0, 0,- @size.z/ 2 + @borderWidth / 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@backBorderMaterial,
 					"xy"),
 				'frontBorder': new Door(
-					new Utils.place(0, 0, @size.z/ 2), 
+					new Utils.place(0, 0, @size.z/ 2 - @borderWidth / 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial,
 					"xy",
@@ -36,31 +36,31 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@storageStands = {
 				'bottomStorage': {
 					'leftBorder': new Border(
-							new Utils.place(@bottomStoragePlace.x - @size.x / 2, @bottomStoragePlace.y, @bottomStoragePlace.z), 
+							new Utils.place(@bottomStoragePlace.x - @size.x / 2  + @borderWidth / 2, @bottomStoragePlace.y, @bottomStoragePlace.z), 
 							new Utils.size(@borderWidth, @bottomStorageHeigth, @size.z),
 							@storageMaterial,
 							"yz"
 						),
 					'rightBorder': new Border(
-							new Utils.place(@bottomStoragePlace.x + @size.x / 2, @bottomStoragePlace.y, @bottomStoragePlace.z), 
+							new Utils.place(@bottomStoragePlace.x + @size.x / 2 - @borderWidth / 2, @bottomStoragePlace.y, @bottomStoragePlace.z), 
 							new Utils.size(@borderWidth, @bottomStorageHeigth, @size.z),
 							@storageMaterial,
 							"yz"
 						),
 					'backBorder': new Border(
-							new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y, @bottomStoragePlace.z - @size.z / 2), 
+							new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y, @bottomStoragePlace.z - @size.z / 2 + @borderWidth / 2), 
 							new Utils.size(@size.x, @bottomStorageHeigth, @borderWidth),
 							@storageMaterial,
 							"xy"
 						),
 					'frontBorder': new Border(
-							new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y, @bottomStoragePlace.z + @size.z / 2), 
+							new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y, @bottomStoragePlace.z + @size.z / 2 - @borderWidth / 2), 
 							new Utils.size(@size.x, @bottomStorageHeigth, @borderWidth),
 							@storageMaterial,
 							"xy"
 						),
 					'bottomBorder': new Border(
-					 		new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y - @bottomStorageHeigth / 2, @bottomStoragePlace.z), 
+					 		new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y - @bottomStorageHeigth / 2 + @borderWidth / 2, @bottomStoragePlace.z), 
 							new Utils.size(@size.x, @borderWidth, @size.z),
 							@storageMaterial,
 							"xz"
@@ -68,25 +68,25 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					},
 				'topStorage': {
 					'leftBorder': new Border(
-							new Utils.place(@topStoragePlace.x - @size.x / 2, @topStoragePlace.y, @topStoragePlace.z), 
+							new Utils.place(@topStoragePlace.x - @size.x / 2 + @borderWidth / 2, @topStoragePlace.y, @topStoragePlace.z), 
 							new Utils.size(@borderWidth, @topStorageHeight, @size.z),
 							@storageMaterial,
 							"yz"
 						),
 					'rightBorder': new Border(
-							new Utils.place(@topStoragePlace.x + @size.x / 2, @topStoragePlace.y, @topStoragePlace.z), 
+							new Utils.place(@topStoragePlace.x + @size.x / 2 - @borderWidth / 2, @topStoragePlace.y, @topStoragePlace.z), 
 							new Utils.size(@borderWidth, @topStorageHeight, @size.z),
 							@storageMaterial,
 							"yz"
 						),
 					'backBorder': new Border(
-							new Utils.place(@topStoragePlace.x, @topStoragePlace.y, @topStoragePlace.z - @size.z / 2), 
+							new Utils.place(@topStoragePlace.x, @topStoragePlace.y, @topStoragePlace.z - @size.z / 2 + @borderWidth / 2), 
 							new Utils.size(@size.x, @topStorageHeight, @borderWidth),
 							@storageMaterial,
 							"xy"
 						),
 					'frontBorder': new Border(
-							new Utils.place(@topStoragePlace.x, @topStoragePlace.y, @topStoragePlace.z + @size.z / 2), 
+							new Utils.place(@topStoragePlace.x, @topStoragePlace.y, @topStoragePlace.z + @size.z / 2 - @borderWidth / 2), 
 							new Utils.size(@size.x, @topStorageHeight, @borderWidth),
 							@storageMaterial,
 							"xy"
@@ -120,18 +120,24 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 										sizeX = if ky != 0 then border.size.x else width
 										sizeY = if kx != 0 then border.size.y else width
 										sizeZ = depth
+										placeX -= kx * width / 2
+										placeY -= ky * width / 2		
 									when "xz" 
 										if ky == 0 then continue
 										if Math.abs(kx) + Math.abs(kz) != 1 then continue
 										sizeX = if kz != 0 then border.size.x else width
 										sizeY = depth
 										sizeZ = if kx != 0 then border.size.z else width
+										placeX -= kx * width / 2
+										placeZ -= kz * width / 2
 									when "yz" 
 										if kx == 0 then continue
 										if Math.abs(ky) + Math.abs(kz) != 1 then continue
 										sizeX = depth
 										sizeY = if kz != 0 then border.size.y else width
 										sizeZ = if ky != 0 then border.size.z else width
+										placeY -= ky * width / 2
+										placeZ -= kz * width / 2
 								borderWinding.add new Border(
 							 		new Utils.place(placeX, placeY, placeZ), 
 									new Utils.size(sizeX, sizeY, sizeZ),
@@ -142,8 +148,9 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@add @borders[borderName] for borderName in Object.keys @borders
 			@add @storageStands[storageName][ind2] for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 			#@add winding @borders["leftBorder"], 1
-			@add winding @borders[borderName], 1 for borderName in Object.keys @borders
-			@add winding @storageStands[storageName][ind2], 1 for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
+			windingWidth = 0.5
+			@add winding @borders[borderName], windingWidth for borderName in Object.keys @borders
+			@add winding @storageStands[storageName][ind2], windingWidth for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
 		changeDoor: (type, isDouble) =>
 			@removeChildrenObject @borders.frontBorder

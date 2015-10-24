@@ -45,6 +45,14 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border']
 	document.getElementById('rotateRight').onclick = ->
 
 	engine.addEventListener("render", -> do obj.borders["frontBorder"].moving)
+
+	changeDoor = (showcaseEntity) ->
+			showcaseEntity.changeDoor document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
 	
 	document.getElementById('typeDoor').onchange = ->
-		obj.changeDoor document.getElementById('typeDoor').value, +document.getElementById('countDoor')
+		changeDoor obj
+
+	document.getElementById('countDoor').onchange = ->
+		changeDoor obj
+
+	
