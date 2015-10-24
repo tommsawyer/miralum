@@ -27,7 +27,7 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					"xy",
 					"Left",
 					"slide",
-					true),
+					false),
 			}
 
 			@bottomStoragePlace = new Utils.place 0, - @size.y / 2 - @bottomStorageHeigth/2, 0
@@ -145,10 +145,30 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@add winding @borders[borderName], 1 for borderName in Object.keys @borders
 			@add winding @storageStands[storageName][ind2], 1 for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
+		changeDoor: (type, isDouble) =>
+			@removeChildrenObject @borders.frontBorder
+			@borders.frontBorder = new Door(
+					new Utils.place(0, 0, 0), 
+					new Utils.size(@size.x, @size.y, @borderWidth),
+					@borderMaterial,
+					"xy",
+					"Left",
+					type,
+					isDouble)
+			@addChildrenObject.call @, @borders.frontBorder
+
 		addShelf: (height) ->
 			@shelfs.push new Border(
 					new Utils.place(@place.x, @place.y + height - @size.y /2, @place.z), 
 					new Utils.size(@size.x, @borderWidth, @size.z),
-					Materials.wood
+					Materials.glass
 				)
+			@bOrder @shelfs.last()
 			@addChildrenObject.call @, @shelfs.last()
+
+		bOrder: (obj) =>
+			if obj.children.length > 0
+				for child in obj.children
+					@bOrder child
+			else
+				obj.renderOrder = -1

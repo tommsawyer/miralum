@@ -39,5 +39,12 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border']
 	document.getElementById('closeDoor').onclick = ->
 		do obj.borders["frontBorder"].close
 
+	document.getElementById('rotateLeft').onclick = ->
+		do engine.rotateCameraLeft
+		
+	document.getElementById('rotateRight').onclick = ->
+
 	engine.addEventListener("render", -> do obj.borders["frontBorder"].moving)
 	
+	document.getElementById('typeDoor').onchange = ->
+		obj.changeDoor document.getElementById('typeDoor').value, +document.getElementById('countDoor')

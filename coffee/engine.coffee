@@ -9,6 +9,7 @@ define ['controls', 'utils'], (Controls, Utils) ->
 
 
 			do @_initialize
+			@camAngle = 0
 			do @_initializeCameras
 			do @_initializeSpotilights
 			@_addAxes 50
@@ -29,7 +30,14 @@ define ['controls', 'utils'], (Controls, Utils) ->
 			@scene.add obj
 
 		removeFromScene: (obj) ->
+			# if obj.children.length > 0
+			# 	@removeFromScene child for child in obj.children
+
 			@scene.remove obj
+			console.log 'удаляю'
+			console.dir obj
+
+
 		nextCamera: =>
 			if @currentCamera < @cameraPositions.length - 1 then @currentCamera++ else  @currentCamera = 0
 			@camera.position.x = @cameraPositions[@currentCamera].x
@@ -39,6 +47,19 @@ define ['controls', 'utils'], (Controls, Utils) ->
 
 		moveCamera: (y) ->
 			@camera.position.y += y
+		rotateCameraLeft: () =>				
+			radius = Math.pow @camera.position.x*@camera.position.x + @camera.position.y*@camera.position.y + @camera.position.z*@camera.position.z, 1/2
+			
+			radius = Math.round(radius)
+			console.dir radius
+			@camera.position.y = 10;
+			@camera.position.x = radius * Math.cos(@camAngle)
+			@camera.position.z = radius * Math.sin(@camAngle)
+			console.dir 'x: ' + @camera.position.x
+			console.dir 'y: ' + @camera.position.y
+			console.dir 'z: ' + @camera.position.z
+			@camAngle += 10.toRadians()
+			@camera.lookAt(@scene.position)
 
 		viewObject: (object) ->
 			correction = -5

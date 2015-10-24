@@ -18,13 +18,11 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 			@dispatchEvent event
 
 		removeChildrenObject: (object) =>
-			event = new CustomEvent 'removeObject', {
-				detail: object
-			}
-			@dispatchEvent event
-
-		remove: ->
-			@removeChildrenObject @
+			# event = new CustomEvent 'removeObject', {
+			# 	detail: object
+			# }
+			# @dispatchEvent event
+			object.parent.remove object
 
 		toggleDimensions: ->
 			unless @dimension

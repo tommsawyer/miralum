@@ -647,7 +647,7 @@ define("../bower_components/almond/almond", function(){});
           detail: this.controllableObject
         });
         this.dispatchEvent(event);
-        this.controllableObject.remove();
+        this.controllableObject.removeChildrenObject(this.controllableObject);
         this.controllableObject = null;
         return this.state.activeState = 'waiting';
       };
@@ -670,10 +670,12 @@ define("../bower_components/almond/almond", function(){});
       extend(Engine, superClass);
 
       function Engine() {
+        this.rotateCameraLeft = bind(this.rotateCameraLeft, this);
         this.nextCamera = bind(this.nextCamera, this);
         this.addToScene = bind(this.addToScene, this);
         this.event = new CustomEvent('render', {});
         this._initialize();
+        this.camAngle = 0;
         this._initializeCameras();
         this._initializeSpotilights();
         this._addAxes(50);
@@ -704,7 +706,9 @@ define("../bower_components/almond/almond", function(){});
       };
 
       Engine.prototype.removeFromScene = function(obj) {
-        return this.scene.remove(obj);
+        this.scene.remove(obj);
+        console.log('удаляю');
+        return console.dir(obj);
       };
 
       Engine.prototype.nextCamera = function() {
@@ -721,6 +725,21 @@ define("../bower_components/almond/almond", function(){});
 
       Engine.prototype.moveCamera = function(y) {
         return this.camera.position.y += y;
+      };
+
+      Engine.prototype.rotateCameraLeft = function() {
+        var radius;
+        radius = Math.pow(this.camera.position.x * this.camera.position.x + this.camera.position.y * this.camera.position.y + this.camera.position.z * this.camera.position.z, 1 / 2);
+        radius = Math.round(radius);
+        console.dir(radius);
+        this.camera.position.y = 10;
+        this.camera.position.x = radius * Math.cos(this.camAngle);
+        this.camera.position.z = radius * Math.sin(this.camAngle);
+        console.dir('x: ' + this.camera.position.x);
+        console.dir('y: ' + this.camera.position.y);
+        console.dir('z: ' + this.camera.position.z);
+        this.camAngle += 10..toRadians();
+        return this.camera.lookAt(this.scene.position);
       };
 
       Engine.prototype.viewObject = function(object) {
@@ -904,15 +923,7 @@ define("../bower_components/almond/almond", function(){});
       };
 
       PhysicalObject.prototype.removeChildrenObject = function(object) {
-        var event;
-        event = new CustomEvent('removeObject', {
-          detail: object
-        });
-        return this.dispatchEvent(event);
-      };
-
-      PhysicalObject.prototype.remove = function() {
-        return this.removeChildrenObject(this);
+        return object.parent.remove(object);
       };
 
       PhysicalObject.prototype.toggleDimensions = function() {
@@ -1021,6 +1032,7 @@ define("../bower_components/almond/almond", function(){});
           this.width = this.size.x;
           this.elementaryAngle = 2;
           this.radius = this.width / (90 / this.elementaryAngle) * (Math.PI / 2);
+          this.renderOrder = 10;
         }
       }
 
@@ -1114,7 +1126,8 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
-  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
   define('showcase',['utils', 'border', 'physicalObject', 'materials', 'dimension', 'door'], function(Utils, Border, physicalObject, Materials, Dimension, Door) {
@@ -1131,6 +1144,8 @@ define("../bower_components/almond/almond", function(){});
         this.bottomStorageHeigth = bottomStorageHeigth;
         this.topStorageHeight = topStorageHeight;
         this.storageMaterial = storageMaterial;
+        this.bOrder = bind(this.bOrder, this);
+        this.changeDoor = bind(this.changeDoor, this);
         ShowCase.__super__.constructor.apply(this, arguments);
         this.borderWidth = 0.5;
         this.shelfs = [];
@@ -1138,7 +1153,7 @@ define("../bower_components/almond/almond", function(){});
           'leftBorder': new Border(new Utils.place(-this.size.x / 2, 0, 0), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
           'rightBorder': new Border(new Utils.place(this.size.x / 2, 0, 0), new Utils.size(this.borderWidth, this.size.y, this.size.z), this.borderMaterial, "yz"),
           'backBorder': new Border(new Utils.place(0, 0, -this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.backBorderMaterial, "xy"),
-          'frontBorder': new Door(new Utils.place(0, 0, this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide", true)
+          'frontBorder': new Door(new Utils.place(0, 0, this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", "slide", false)
         };
         this.bottomStoragePlace = new Utils.place(0, -this.size.y / 2 - this.bottomStorageHeigth / 2, 0);
         this.topStoragePlace = new Utils.place(0, 0 + this.size.y / 2 + this.topStorageHeight / 2, 0);
@@ -1242,9 +1257,31 @@ define("../bower_components/almond/almond", function(){});
         }
       }
 
+      ShowCase.prototype.changeDoor = function(type, isDouble) {
+        this.removeChildrenObject(this.borders.frontBorder);
+        this.borders.frontBorder = new Door(new Utils.place(0, 0, 0), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", type, isDouble);
+        return this.addChildrenObject.call(this, this.borders.frontBorder);
+      };
+
       ShowCase.prototype.addShelf = function(height) {
-        this.shelfs.push(new Border(new Utils.place(this.place.x, this.place.y + height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.wood));
+        this.shelfs.push(new Border(new Utils.place(this.place.x, this.place.y + height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.glass));
+        this.bOrder(this.shelfs.last());
         return this.addChildrenObject.call(this, this.shelfs.last());
+      };
+
+      ShowCase.prototype.bOrder = function(obj) {
+        var child, i, len, ref, results;
+        if (obj.children.length > 0) {
+          ref = obj.children;
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            child = ref[i];
+            results.push(this.bOrder(child));
+          }
+          return results;
+        } else {
+          return obj.renderOrder = -1;
+        }
       };
 
       return ShowCase;
@@ -1300,9 +1337,16 @@ define("../bower_components/almond/almond", function(){});
     document.getElementById('closeDoor').onclick = function() {
       return obj.borders["frontBorder"].close();
     };
-    return engine.addEventListener("render", function() {
+    document.getElementById('rotateLeft').onclick = function() {
+      return engine.rotateCameraLeft();
+    };
+    document.getElementById('rotateRight').onclick = function() {};
+    engine.addEventListener("render", function() {
       return obj.borders["frontBorder"].moving();
     });
+    return document.getElementById('typeDoor').onchange = function() {
+      return obj.changeDoor(document.getElementById('typeDoor').value, +document.getElementById('countDoor'));
+    };
   });
 
 }).call(this);

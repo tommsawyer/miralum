@@ -36,7 +36,8 @@ define ['physicalObject', 'border', 'utils'], (physicalObject, Border, Utils) ->
 				@currentState = @doorState.closed
 				@width = @.size.x
 				@elementaryAngle = 2
-				@radius = @width / (90 / @elementaryAngle) * (Math.PI/2)	
+				@radius = @width / (90 / @elementaryAngle) * (Math.PI/2)
+				@renderOrder = 10
 
 
 		open: ->

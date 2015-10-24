@@ -93,6 +93,6 @@ define ['utils', 'interface'], (Utils, Interface) ->
 
 			@dispatchEvent event
 
-			do @controllableObject.remove
+			@controllableObject.removeChildrenObject @controllableObject
 			@controllableObject = null
 			@state.activeState = 'waiting'
