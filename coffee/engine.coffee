@@ -12,7 +12,7 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 			@camAngle = 0
 			do @_initializeCameras
 			do @_initializeSpotilights
-			#@_addAxes 50
+			@_addAxes 2000
 
 			@controls = new Controls @renderer.domElement, @
 
@@ -47,19 +47,19 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 
 		moveCamera: (y) ->
 			@camera.position.y += y
-		rotateCameraLeft: () =>				
-			radius = Math.pow @camera.position.x*@camera.position.x + @camera.position.y*@camera.position.y + @camera.position.z*@camera.position.z, 1/2
+		# rotateCameraLeft: () =>				
+		# 	radius = Math.pow @camera.position.x*@camera.position.x + @camera.position.y*@camera.position.y + @camera.position.z*@camera.position.z, 1/2
 			
-			radius = Math.round(radius)
-			console.dir radius
-			@camera.position.y = 10;
-			@camera.position.x = radius * Math.cos(@camAngle)
-			@camera.position.z = radius * Math.sin(@camAngle)
-			console.dir 'x: ' + @camera.position.x
-			console.dir 'y: ' + @camera.position.y
-			console.dir 'z: ' + @camera.position.z
-			@camAngle += 10.toRadians()
-			@camera.lookAt(@scene.position)
+		# 	radius = Math.round(radius)
+		# 	console.dir radius
+		# 	@camera.position.y = 10;
+		# 	@camera.position.x = radius * Math.cos(@camAngle)
+		# 	@camera.position.z = radius * Math.sin(@camAngle)
+		# 	console.dir 'x: ' + @camera.position.x
+		# 	console.dir 'y: ' + @camera.position.y
+		# 	console.dir 'z: ' + @camera.position.z
+		# 	@camAngle += 10.toRadians()
+		# 	@camera.lookAt(@scene.position)
 
 		getCloserShowCase: (position) ->
 			currentShowCase = null
@@ -106,16 +106,16 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 			@scene.add spotlight
 
 		_initializeCameras: ->
-			@camera = new THREE.PerspectiveCamera 75, window.innerWidth / window.innerHeight, 0.1, 1000
-			@camera.position.x = -30
-			@camera.position.y = 40
-			@camera.position.z = 30
+			@camera = new THREE.PerspectiveCamera 75, window.innerWidth / window.innerHeight, 0.1, 5000
+			@camera.position.x = -800
+			@camera.position.y = 2000
+			@camera.position.z = 1500
 			@camera.lookAt @scene.position
 
 			@cameraDistance = {
-				x: 50,
-				y: 50,
-				z: 50
+				x: 1000,
+				y: 2000,
+				z: 1500
 			}
 
 			@cameraPositionValues = {

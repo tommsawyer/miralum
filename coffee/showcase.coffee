@@ -148,7 +148,7 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@add @borders[borderName] for borderName in Object.keys @borders
 			@add @storageStands[storageName][ind2] for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 			#@add winding @borders["leftBorder"], 1
-			windingWidth = 0.5
+			windingWidth = 10
 			@add winding @borders[borderName], windingWidth for borderName in Object.keys @borders
 			@add winding @storageStands[storageName][ind2], windingWidth for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
