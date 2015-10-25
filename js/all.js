@@ -1365,7 +1365,35 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
-  require(['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border'], function(Engine, physicalObject, Utils, Materials, ShowCase, Border) {
+  define('calculations',[], function() {
+    var Calculations;
+    Number.prototype.toMetres = function() {
+      return this / 1000;
+    };
+    Calculations = (function() {
+      function Calculations(configurationFile) {}
+
+      Calculations.prototype.getGlassCost = function(thickness, width, height, grinding, polishing) {
+        var length, square;
+        square = width.toMetres() * height.toMetres();
+        length = width.toMetres() * height.toMetres() * 2;
+        return {
+          square: square,
+          length: length,
+          cost: square * this.config.glassCost + length * (this.config.grindingCost + this.config.polishingCost)
+        };
+      };
+
+      return Calculations;
+
+    })();
+    return new Calculations('../config/configurationTable.json');
+  });
+
+}).call(this);
+
+(function() {
+  require(['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border', 'calculations'], function(Engine, physicalObject, Utils, Materials, ShowCase, Border, Calculations) {
     var engine, i, obj, obj2, obj3;
     engine = new Engine;
     i = 20;
@@ -1411,9 +1439,10 @@ define("../bower_components/almond/almond", function(){});
     engine.addEventListener("render", function() {
       return obj2.borders["frontBorder"].moving();
     });
-    return engine.addEventListener("render", function() {
+    engine.addEventListener("render", function() {
       return obj3.borders["frontBorder"].moving();
     });
+    return console.dir(Calculations.getGlassCost(5, 378, 942, false, true));
   });
 
 }).call(this);

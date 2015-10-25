@@ -1,4 +1,4 @@
-require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border'], (Engine, physicalObject, Utils, Materials, ShowCase, Border) ->
+require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border', 'calculations'], (Engine, physicalObject, Utils, Materials, ShowCase, Border, Calculations) ->
 	engine = new Engine
 	i = 20
 	obj = new ShowCase new Utils.place(0,0,0), new Utils.size(20,60,10), Materials.glass, Materials.glass, 10, 3, Materials.panel
@@ -40,3 +40,4 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border']
 	engine.addEventListener("render", -> do obj2.borders["frontBorder"].moving)
 	engine.addEventListener("render", -> do obj3.borders["frontBorder"].moving)
 	
+	console.dir Calculations.getGlassCost 5, 378, 942, false, true
