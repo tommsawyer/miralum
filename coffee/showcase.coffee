@@ -164,6 +164,36 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					isDouble)
 			@add @borders.frontBorder
 
+		changeSize: (size) =>
+			@removeChildrenObject @
+			@addChildrenObject new ShowCase(
+				new Utils.place(@place.x, @place.y + size.y - @size.y, @place.z), 
+				size, @borderMaterial, @backBorderMaterial, @bottomStorageHeigth, @topStorageHeight, @storageMaterial)
+
+		changeBorderMaterial: (material) =>
+			@borderMaterial = material
+			for borderName in Object.keys(@borders)
+				for mesh in @borders[borderName].children
+					mesh.material = material
+
+
+		changeBorderThickness: (thickness) =>
+			scale = thickness / @borderWidth
+			
+			for borderName in Object.keys(@borders)
+				for mesh in @borders[borderName].children
+					size = Utils.getObjectSize mesh
+					for axis in ['x', 'y', 'z']
+						mesh.scale[axis] = scale if size[axis] == @borderWidth 
+
+			for storageType in Object.keys(@storageStands)
+				for storageName in Object.keys(@storageStands[storageType])
+					for mesh in @storageStands[storageType][storageName].children
+						size = Utils.getObjectSize mesh
+						for axis in ['x', 'y', 'z']
+							mesh.scale[axis] = scale if size[axis] == @borderWidth 
+
+
 		addShelf: (height) ->
 			height = Math.min(Math.max(0, height), @size.y - @topStorageHeight)
 			@shelfs.push new Border(

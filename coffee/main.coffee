@@ -40,4 +40,3 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border',
 	# engine.addEventListener("render", -> do obj2.borders["frontBorder"].moving)
 	# engine.addEventListener("render", -> do obj3.borders["frontBorder"].moving)
 	
-	console.dir Calculations.getGlassCost 5, 378, 942, false, true

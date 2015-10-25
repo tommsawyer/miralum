@@ -904,15 +904,18 @@ define("../bower_components/almond/almond", function(){});
     return ShowCase = (function(superClass) {
       extend(ShowCase, superClass);
 
-      function ShowCase(place, size, borderMaterial, backBorderMaterial, bottomStorageHeigth, topStorageHeight, storageMaterial) {
+      function ShowCase(place, size1, borderMaterial, backBorderMaterial, bottomStorageHeigth, topStorageHeight, storageMaterial) {
         var borderName, i, ind2, j, k, l, len, len1, len2, len3, len4, len5, m, n, ref, ref1, ref2, ref3, ref4, ref5, storageName, winding, windingWidth;
         this.place = place;
-        this.size = size;
+        this.size = size1;
         this.borderMaterial = borderMaterial;
         this.backBorderMaterial = backBorderMaterial;
         this.bottomStorageHeigth = bottomStorageHeigth;
         this.topStorageHeight = topStorageHeight;
         this.storageMaterial = storageMaterial;
+        this.changeBorderThickness = bind(this.changeBorderThickness, this);
+        this.changeBorderMaterial = bind(this.changeBorderMaterial, this);
+        this.changeSize = bind(this.changeSize, this);
         this.changeDoor = bind(this.changeDoor, this);
         ShowCase.__super__.constructor.apply(this, arguments);
         this.borderWidth = 0.5;
@@ -1015,7 +1018,7 @@ define("../bower_components/almond/almond", function(){});
             this.add(this.storageStands[storageName][ind2]);
           }
         }
-        windingWidth = 0.5;
+        windingWidth = 10;
         ref3 = Object.keys(this.borders);
         for (l = 0, len3 = ref3.length; l < len3; l++) {
           borderName = ref3[l];
@@ -1036,6 +1039,92 @@ define("../bower_components/almond/almond", function(){});
         this.removeChildrenObject(this.borders.frontBorder);
         this.borders.frontBorder = new Door(new Utils.place(0, 0, this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", type, isDouble);
         return this.add(this.borders.frontBorder);
+      };
+
+      ShowCase.prototype.changeSize = function(size) {
+        this.removeChildrenObject(this);
+        return this.addChildrenObject(new ShowCase(new Utils.place(this.place.x, this.place.y + size.y - this.size.y, this.place.z), size, this.borderMaterial, this.backBorderMaterial, this.bottomStorageHeigth, this.topStorageHeight, this.storageMaterial));
+      };
+
+      ShowCase.prototype.changeBorderMaterial = function(material) {
+        var borderName, i, len, mesh, ref, results;
+        this.borderMaterial = material;
+        ref = Object.keys(this.borders);
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          borderName = ref[i];
+          results.push((function() {
+            var j, len1, ref1, results1;
+            ref1 = this.borders[borderName].children;
+            results1 = [];
+            for (j = 0, len1 = ref1.length; j < len1; j++) {
+              mesh = ref1[j];
+              results1.push(mesh.material = material);
+            }
+            return results1;
+          }).call(this));
+        }
+        return results;
+      };
+
+      ShowCase.prototype.changeBorderThickness = function(thickness) {
+        var axis, borderName, i, j, k, l, len, len1, len2, len3, mesh, ref, ref1, ref2, ref3, results, scale, size, storageName, storageType;
+        scale = thickness / this.borderWidth;
+        ref = Object.keys(this.borders);
+        for (i = 0, len = ref.length; i < len; i++) {
+          borderName = ref[i];
+          ref1 = this.borders[borderName].children;
+          for (j = 0, len1 = ref1.length; j < len1; j++) {
+            mesh = ref1[j];
+            size = Utils.getObjectSize(mesh);
+            ref2 = ['x', 'y', 'z'];
+            for (k = 0, len2 = ref2.length; k < len2; k++) {
+              axis = ref2[k];
+              if (size[axis] === this.borderWidth) {
+                mesh.scale[axis] = scale;
+              }
+            }
+          }
+        }
+        ref3 = Object.keys(this.storageStands);
+        results = [];
+        for (l = 0, len3 = ref3.length; l < len3; l++) {
+          storageType = ref3[l];
+          results.push((function() {
+            var len4, m, ref4, results1;
+            ref4 = Object.keys(this.storageStands[storageType]);
+            results1 = [];
+            for (m = 0, len4 = ref4.length; m < len4; m++) {
+              storageName = ref4[m];
+              results1.push((function() {
+                var len5, n, ref5, results2;
+                ref5 = this.storageStands[storageType][storageName].children;
+                results2 = [];
+                for (n = 0, len5 = ref5.length; n < len5; n++) {
+                  mesh = ref5[n];
+                  size = Utils.getObjectSize(mesh);
+                  results2.push((function() {
+                    var len6, o, ref6, results3;
+                    ref6 = ['x', 'y', 'z'];
+                    results3 = [];
+                    for (o = 0, len6 = ref6.length; o < len6; o++) {
+                      axis = ref6[o];
+                      if (size[axis] === this.borderWidth) {
+                        results3.push(mesh.scale[axis] = scale);
+                      } else {
+                        results3.push(void 0);
+                      }
+                    }
+                    return results3;
+                  }).call(this));
+                }
+                return results2;
+              }).call(this));
+            }
+            return results1;
+          }).call(this));
+        }
+        return results;
       };
 
       ShowCase.prototype.addShelf = function(height) {
@@ -1204,7 +1293,6 @@ define("../bower_components/almond/almond", function(){});
       extend(Engine, superClass);
 
       function Engine() {
-        this.rotateCameraLeft = bind(this.rotateCameraLeft, this);
         this.nextCamera = bind(this.nextCamera, this);
         this.addToScene = bind(this.addToScene, this);
         this.event = new CustomEvent('render', {});
@@ -1212,6 +1300,7 @@ define("../bower_components/almond/almond", function(){});
         this.camAngle = 0;
         this._initializeCameras();
         this._initializeSpotilights();
+        this._addAxes(2000);
         this.controls = new Controls(this.renderer.domElement, this);
         this.run();
       }
@@ -1258,21 +1347,6 @@ define("../bower_components/almond/almond", function(){});
 
       Engine.prototype.moveCamera = function(y) {
         return this.camera.position.y += y;
-      };
-
-      Engine.prototype.rotateCameraLeft = function() {
-        var radius;
-        radius = Math.pow(this.camera.position.x * this.camera.position.x + this.camera.position.y * this.camera.position.y + this.camera.position.z * this.camera.position.z, 1 / 2);
-        radius = Math.round(radius);
-        console.dir(radius);
-        this.camera.position.y = 10;
-        this.camera.position.x = radius * Math.cos(this.camAngle);
-        this.camera.position.z = radius * Math.sin(this.camAngle);
-        console.dir('x: ' + this.camera.position.x);
-        console.dir('y: ' + this.camera.position.y);
-        console.dir('z: ' + this.camera.position.z);
-        this.camAngle += 10..toRadians();
-        return this.camera.lookAt(this.scene.position);
       };
 
       Engine.prototype.getCloserShowCase = function(position) {
@@ -1333,15 +1407,15 @@ define("../bower_components/almond/almond", function(){});
       };
 
       Engine.prototype._initializeCameras = function() {
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.x = -30;
-        this.camera.position.y = 40;
-        this.camera.position.z = 30;
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+        this.camera.position.x = -800;
+        this.camera.position.y = 2000;
+        this.camera.position.z = 1500;
         this.camera.lookAt(this.scene.position);
         this.cameraDistance = {
-          x: 50,
-          y: 50,
-          z: 50
+          x: 1000,
+          y: 2000,
+          z: 1500
         };
         this.cameraPositionValues = {
           'LeftFront': new THREE.Vector3(-this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z),
@@ -1394,15 +1468,11 @@ define("../bower_components/almond/almond", function(){});
 
 (function() {
   require(['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border', 'calculations'], function(Engine, physicalObject, Utils, Materials, ShowCase, Border, Calculations) {
-    var engine, i, obj, obj2, obj3;
+    var engine, i, obj;
     engine = new Engine;
     i = 20;
-    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
+    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.size(900, 2050, 400), Materials.glass, Materials.glass, 300, 100, Materials.panel);
     engine.addToScene(obj);
-    obj2 = new ShowCase(new Utils.place(20, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
-    engine.addToScene(obj2);
-    obj3 = new ShowCase(new Utils.place(-20, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
-    engine.addToScene(obj3);
     document.getElementById('changeCamera').onclick = function() {
       return engine.nextCamera();
     };
@@ -1420,7 +1490,7 @@ define("../bower_components/almond/almond", function(){});
     };
     document.getElementById('addShelf').onclick = function() {
       var bord;
-      bord = new Border(new Utils.place(0, 0, 0), new Utils.size(20, 1, 10), Materials.glass);
+      bord = new Border(new Utils.place(0, 0, 0), new Utils.size(obj.size.x, 10, obj.size.z), Materials.glass);
       bord.bOrder(bord);
       engine.addToScene(bord);
       return engine.controls.createControllableObject(bord, function(shelf) {
@@ -1432,17 +1502,12 @@ define("../bower_components/almond/almond", function(){});
     document.getElementById('rotateLeft').onclick = function() {
       return engine.rotateCameraLeft();
     };
-    document.getElementById('rotateRight').onclick = function() {};
-    engine.addEventListener("render", function() {
+    document.getElementById('rotateRight').onclick = function() {
+      return obj.changeBorderThickness(1);
+    };
+    return engine.addEventListener("render", function() {
       return obj.borders["frontBorder"].moving();
     });
-    engine.addEventListener("render", function() {
-      return obj2.borders["frontBorder"].moving();
-    });
-    engine.addEventListener("render", function() {
-      return obj3.borders["frontBorder"].moving();
-    });
-    return console.dir(Calculations.getGlassCost(5, 378, 942, false, true));
   });
 
 }).call(this);
