@@ -11,25 +11,14 @@
 <body>
 	<div class="container">
 		<h2>MirAlum constructor beta</h2>		
-		<button id='addShowCase' class='btn btn-default'>Добавить полку</button>
+		<button id='addShelf' class='btn btn-default'>Добавить полку</button>
 		<button id='changeCamera' class='btn btn-default'>Изменить камеру</button>
-		<button id='openDoor' class='btn btn-default'>Открыть дверь</button>
-		<button id='closeDoor' class='btn btn-default'>Закрыть дверь</button>
 		<button id='centerCamera' class='btn btn-default'>Центрировать на объекте</button>
 		<button id='cameraUp' class='btn btn-default'>+</button>
 		<button id='cameraDown' class='btn btn-default'>-</button>
 		<button id='toggleDimensions' class='btn btn-default'>Вкл/выкл размеры</button>
 		<button id='rotateLeft'>left</button>
 		<button id='rotateRight'>right</button>
-		<select name="" id="typeDoor">
-			<option value="slide">Слайдер</option>
-			<option value="swing">Распахивающаяся</option>
-			<option value="border">Сплошная</option>
-		</select>
-		<select name="" id="countDoor">
-			<option value="0">Одиночная</option>
-			<option value="1">Двойная</option>
-		</select>
 		<div id="blockInfo" class='form'>
 			<h4 id='blockName'>Название</h4>
 			<table class='table'>
@@ -43,7 +32,40 @@
 				</tr>
 				<tr>
 					<td colspan="2">
-						<button id='addShelf' class='btn btn-default button'> Добавить полку </button>
+						<button id='openDoor' class='btn btn-default button'> Открыть дверь </button>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<button id='closeDoor' class='btn btn-default button'> Закрыть дверь </button>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<h4>Тип двери:</h2>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Створки:
+					</td>
+					<td>
+						<select name="" id="countDoor">
+							<option value="0">Одиночная</option>
+							<option value="1">Двойная</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Тип:
+					</td>
+					<td>
+						<select name="" id="typeDoor">
+							<option value="slide">Слайдер</option>
+							<option value="swing">Распашная</option>
+							<option value="border">Сплошная</option>
+						</select>
 					</td>
 				</tr>
 			</table>

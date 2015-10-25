@@ -1,4 +1,4 @@
-define ['utils', 'interface'], (Utils, Interface) ->
+define ['utils', 'interface', 'showcase'], (Utils, Interface, ShowCase) ->
 	class Controls extends THREE.EventDispatcher
 		constructor: (@canvas, @engine) ->
 			@raycaster = new THREE.Raycaster
@@ -53,10 +53,15 @@ define ['utils', 'interface'], (Utils, Interface) ->
 				Interface.fillBlockFields false
 				return
 
-			sizes = Utils.getObjectSize @activeMesh.object
-			Interface.fillBlockFields true, @activeMesh.object.type, sizes.x, sizes.y
+			obj = @activeMesh.object
+
+			while obj.parent != null
+				if obj.parent instanceof ShowCase
+					Interface.clickOnShowCase obj.parent
+					break
+				obj = obj.parent
+
 			@activeMesh.object.parent.click event
-			@engine.viewObject @activeMesh.object.parent
 
 		findIntersect: =>
 			@raycaster.setFromCamera @mouse, @engine.camera

@@ -6,6 +6,30 @@ define [], ->
 			@blockWidth  = document.getElementById('blockWidth')
 			@blockHeight = document.getElementById('blockHeight')
 
+			document.getElementById('openDoor').onclick = =>
+				do @activeShowCase.borders['frontBorder'].open
+
+			document.getElementById('closeDoor').onclick = =>
+				do @activeShowCase.borders['frontBorder'].close
+
+			document.getElementById('typeDoor').onchange = =>
+				@activeShowCase.changeDoor document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
+
+			document.getElementById('countDoor').onchange = =>
+				@activeShowCase.changeDoor document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
+		
+
+		openDoor: ->
+			do @activeShowCase.borders['frontBorder'].open
+
+		openDoor: ->
+			do @activeShowCase.borders['frontBorder'].close
+
+		clickOnShowCase: (showcase) ->
+			@activeShowCase = showcase
+			do @openDoor
+			@fillBlockFields true, 'Витрина', showcase.size.z, showcase.size.y
+
 		fillBlockFields: (visible, name, width, height) ->
 			if visible 
 				@blockInfo.style.display = 'block' 

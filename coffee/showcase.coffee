@@ -155,7 +155,7 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 		changeDoor: (type, isDouble) =>
 			@removeChildrenObject @borders.frontBorder
 			@borders.frontBorder = new Door(
-					new Utils.place(@place.x, @place.y, @place.z + @size.z / 2), 
+					new Utils.place(0, 0, @size.z / 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial,
 					"xy",
