@@ -1136,8 +1136,8 @@ define("../bower_components/almond/almond", function(){});
 
       ShowCase.prototype.changeDoor = function(type, isDouble) {
         this.removeChildrenObject(this.borders.frontBorder);
-        this.borders.frontBorder = new Door(new Utils.place(0, 0, 0), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", type, isDouble);
-        return this.addChildrenObject.call(this, this.borders.frontBorder);
+        this.borders.frontBorder = new Door(new Utils.place(this.place.x, this.place.y, this.place.z + this.size.z / 2), new Utils.size(this.size.x, this.size.y, this.borderWidth), this.borderMaterial, "xy", "Left", type, isDouble);
+        return this.add(this.borders.frontBorder);
       };
 
       ShowCase.prototype.addShelf = function(height) {

@@ -155,14 +155,14 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 		changeDoor: (type, isDouble) =>
 			@removeChildrenObject @borders.frontBorder
 			@borders.frontBorder = new Door(
-					new Utils.place(0, 0, 0), 
+					new Utils.place(@place.x, @place.y, @place.z + @size.z / 2), 
 					new Utils.size(@size.x, @size.y, @borderWidth),
 					@borderMaterial,
 					"xy",
 					"Left",
 					type,
 					isDouble)
-			@addChildrenObject.call @, @borders.frontBorder
+			@add @borders.frontBorder
 
 		addShelf: (height) ->
 			height = Math.min(Math.max(0, height), @size.y - @topStorageHeight)
