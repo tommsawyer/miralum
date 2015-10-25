@@ -1,4 +1,4 @@
-define ['controls', 'utils'], (Controls, Utils) ->	
+define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->	
 	class Engine extends THREE.EventDispatcher
 		#
 		# Public functions
@@ -12,7 +12,7 @@ define ['controls', 'utils'], (Controls, Utils) ->
 			@camAngle = 0
 			do @_initializeCameras
 			do @_initializeSpotilights
-			@_addAxes 50
+			#@_addAxes 50
 
 			@controls = new Controls @renderer.domElement, @
 
@@ -60,6 +60,15 @@ define ['controls', 'utils'], (Controls, Utils) ->
 			console.dir 'z: ' + @camera.position.z
 			@camAngle += 10.toRadians()
 			@camera.lookAt(@scene.position)
+
+		getCloserShowCase: (position) ->
+			currentShowCase = null
+			minDistance = null
+			for showcase in @scene.children when showcase instanceof ShowCase
+				if minDistance == null or minDistance > Utils.getDistance(position, showcase.place)
+					currentShowCase = showcase
+					minDistance = Utils.getDistance position, showcase.place
+			currentShowCase
 
 		viewObject: (object) ->
 			correction = -5

@@ -447,6 +447,9 @@ define("../bower_components/almond/almond", function(){});
     Number.prototype.toRadians = function() {
       return Math.PI * this / 180;
     };
+    Number.prototype.square = function() {
+      return this * this;
+    };
     Place = (function() {
       function Place(x, y, z) {
         this.x = x;
@@ -460,6 +463,9 @@ define("../bower_components/almond/almond", function(){});
     return {
       getObjectSize: function(object) {
         return (new THREE.Box3().setFromObject(object)).size();
+      },
+      getDistance: function(firstPoint, secondPoint) {
+        return Math.sqrt((firstPoint.x - secondPoint.x).square() + (firstPoint.y - secondPoint.y).square() + (firstPoint.z - secondPoint.z).square());
       },
       place: Place,
       size: Place
@@ -626,18 +632,20 @@ define("../bower_components/almond/almond", function(){});
         if (this.controllableObject) {
           vector = this.mouse.unproject(this.engine.camera);
           dir = vector.sub(this.engine.camera.position).normalize();
-          distance = -this.engine.camera.position.x / dir.x;
+          distance = -this.engine.camera.position.z / dir.z;
           pos = this.engine.camera.position.clone().add(dir.multiplyScalar(distance));
-          this.controllableObject.position.z = pos.z;
+          this.controllableObject.position.x = pos.x;
           return this.controllableObject.position.y = pos.y;
         }
       };
 
       Controls.prototype.createControllableObject = function(object, callback) {
+        var listener;
         this.state.activeState = 'controlObject';
         this.controllableObject = object;
-        return this.addEventListener('remove', function(event) {
-          return callback(event.detail);
+        return this.addEventListener('remove', listener = function(event) {
+          callback(event.detail);
+          return this.removeEventListener('remove', listener);
         });
       };
 
@@ -660,168 +668,13 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
-  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
-
-  define('engine',['controls', 'utils'], function(Controls, Utils) {
-    var Engine;
-    return Engine = (function(superClass) {
-      extend(Engine, superClass);
-
-      function Engine() {
-        this.rotateCameraLeft = bind(this.rotateCameraLeft, this);
-        this.nextCamera = bind(this.nextCamera, this);
-        this.addToScene = bind(this.addToScene, this);
-        this.event = new CustomEvent('render', {});
-        this._initialize();
-        this.camAngle = 0;
-        this._initializeCameras();
-        this._initializeSpotilights();
-        this._addAxes(50);
-        this.controls = new Controls(this.renderer.domElement, this);
-        this.run();
-      }
-
-      Engine.prototype.addToScene = function(obj) {
-        if (obj.addToScene instanceof Function) {
-          obj.addEventListener('newObject', (function(_this) {
-            return function(event) {
-              return _this.addToScene(event.detail);
-            };
-          })(this));
-          obj.addEventListener('removeObject', (function(_this) {
-            return function(event) {
-              return _this.removeFromScene(event.detail);
-            };
-          })(this));
-          obj.addToScene((function(_this) {
-            return function(object) {
-              return _this.scene.add(object);
-            };
-          })(this));
-          return;
-        }
-        return this.scene.add(obj);
-      };
-
-      Engine.prototype.removeFromScene = function(obj) {
-        this.scene.remove(obj);
-        console.log('удаляю');
-        return console.dir(obj);
-      };
-
-      Engine.prototype.nextCamera = function() {
-        if (this.currentCamera < this.cameraPositions.length - 1) {
-          this.currentCamera++;
-        } else {
-          this.currentCamera = 0;
-        }
-        this.camera.position.x = this.cameraPositions[this.currentCamera].x;
-        this.camera.position.y = this.cameraPositions[this.currentCamera].y;
-        this.camera.position.z = this.cameraPositions[this.currentCamera].z;
-        return this.camera.lookAt(this.scene.position);
-      };
-
-      Engine.prototype.moveCamera = function(y) {
-        return this.camera.position.y += y;
-      };
-
-      Engine.prototype.rotateCameraLeft = function() {
-        var radius;
-        radius = Math.pow(this.camera.position.x * this.camera.position.x + this.camera.position.y * this.camera.position.y + this.camera.position.z * this.camera.position.z, 1 / 2);
-        radius = Math.round(radius);
-        console.dir(radius);
-        this.camera.position.y = 10;
-        this.camera.position.x = radius * Math.cos(this.camAngle);
-        this.camera.position.z = radius * Math.sin(this.camAngle);
-        console.dir('x: ' + this.camera.position.x);
-        console.dir('y: ' + this.camera.position.y);
-        console.dir('z: ' + this.camera.position.z);
-        this.camAngle += 10..toRadians();
-        return this.camera.lookAt(this.scene.position);
-      };
-
-      Engine.prototype.viewObject = function(object) {
-        var correction, sizes, viewAngle;
-        correction = -5;
-        viewAngle = (this.camera.fov / 2).toRadians();
-        sizes = Utils.getObjectSize(object);
-        this.camera.position.z = object.position.z;
-        this.camera.position.y = object.position.y;
-        this.camera.position.x = object.position.x - sizes.x / 2 + correction - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle);
-        return this.camera.lookAt(object.position);
-      };
-
-      Engine.prototype.run = function() {
-        var renderScene;
-        renderScene = (function(_this) {
-          return function() {
-            _this.dispatchEvent(_this.event);
-            requestAnimationFrame(renderScene);
-            return _this.renderer.render(_this.scene, _this.camera);
-          };
-        })(this);
-        return renderScene();
-      };
-
-      Engine.prototype._initialize = function() {
-        this.scene = new THREE.Scene;
-        this.renderer = new THREE.WebGLRenderer;
-        this.renderer.setClearColor(0xEEEEEE);
-        this.renderer.setSize(document.body.clientWidth, document.body.clientHeight);
-        return document.body.appendChild(this.renderer.domElement);
-      };
-
-      Engine.prototype._initializeSpotilights = function() {
-        var spotlight;
-        spotlight = new THREE.AmbientLight(0xffffff);
-        spotlight.position.set(-60, 30, -10);
-        this.scene.add(spotlight);
-        spotlight.position.set(32, 30, 0);
-        return this.scene.add(spotlight);
-      };
-
-      Engine.prototype._initializeCameras = function() {
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.x = -30;
-        this.camera.position.y = 40;
-        this.camera.position.z = 30;
-        this.camera.lookAt(this.scene.position);
-        this.cameraDistance = {
-          x: 50,
-          y: 50,
-          z: 50
-        };
-        this.cameraPositionValues = {
-          'LeftFront': new THREE.Vector3(-this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z),
-          'Front': new THREE.Vector3(0, this.cameraDistance.y, this.cameraDistance.z),
-          'RightFront': new THREE.Vector3(this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z)
-        };
-        this.cameraPositions = [this.cameraPositionValues.LeftFront, this.cameraPositionValues.Front, this.cameraPositionValues.RightFront];
-        return this.currentCamera = 0;
-      };
-
-      Engine.prototype._addAxes = function(size) {
-        this.axes = new THREE.AxisHelper(size);
-        return this.scene.add(this.axes);
-      };
-
-      return Engine;
-
-    })(THREE.EventDispatcher);
-  });
-
-}).call(this);
-
-(function() {
-  define('materials',['engine'], function(Engine) {
+  define('materials',[], function() {
     var glassTexture, panelTexture, woodTexture;
-    glassTexture = THREE.ImageUtils.loadTexture('../img/blueGlass.jpg', void 0, Engine.renderer);
+    glassTexture = THREE.ImageUtils.loadTexture('../img/blueGlass.jpg', void 0);
     glassTexture.minFilter = THREE.LinearFilter;
-    woodTexture = THREE.ImageUtils.loadTexture('../img/wood.jpg', void 0, Engine.renderer);
+    woodTexture = THREE.ImageUtils.loadTexture('../img/wood.jpg', void 0);
     woodTexture.minFilter = THREE.LinearFilter;
-    panelTexture = THREE.ImageUtils.loadTexture('../img/pan.jpg', void 0, Engine.renderer);
+    panelTexture = THREE.ImageUtils.loadTexture('../img/pan.jpg', void 0);
     panelTexture.minFilter = THREE.LinearFilter;
     return {
       'glass': new THREE.MeshLambertMaterial({
@@ -903,6 +756,7 @@ define("../bower_components/almond/almond", function(){});
         this.place = place;
         this.size = size;
         this.material = material;
+        this.bOrder = bind(this.bOrder, this);
         this.removeChildrenObject = bind(this.removeChildrenObject, this);
         this.addChildrenObject = bind(this.addChildrenObject, this);
         PhysicalObject.__super__.constructor.apply(this, arguments);
@@ -948,6 +802,21 @@ define("../bower_components/almond/almond", function(){});
 
       PhysicalObject.prototype.getMesh = function() {
         return this;
+      };
+
+      PhysicalObject.prototype.bOrder = function(obj) {
+        var child, i, len, ref, results;
+        if (obj.children.length > 0) {
+          ref = obj.children;
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            child = ref[i];
+            results.push(this.bOrder(child));
+          }
+          return results;
+        } else {
+          return obj.renderOrder = -1;
+        }
       };
 
       return PhysicalObject;
@@ -1146,7 +1015,6 @@ define("../bower_components/almond/almond", function(){});
         this.bottomStorageHeigth = bottomStorageHeigth;
         this.topStorageHeight = topStorageHeight;
         this.storageMaterial = storageMaterial;
-        this.bOrder = bind(this.bOrder, this);
         this.changeDoor = bind(this.changeDoor, this);
         ShowCase.__super__.constructor.apply(this, arguments);
         this.borderWidth = 0.5;
@@ -1273,24 +1141,10 @@ define("../bower_components/almond/almond", function(){});
       };
 
       ShowCase.prototype.addShelf = function(height) {
+        height = Math.min(Math.max(0, height), this.size.y - this.topStorageHeight);
         this.shelfs.push(new Border(new Utils.place(this.place.x, this.place.y + height - this.size.y / 2, this.place.z), new Utils.size(this.size.x, this.borderWidth, this.size.z), Materials.glass));
         this.bOrder(this.shelfs.last());
         return this.addChildrenObject.call(this, this.shelfs.last());
-      };
-
-      ShowCase.prototype.bOrder = function(obj) {
-        var child, i, len, ref, results;
-        if (obj.children.length > 0) {
-          ref = obj.children;
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            child = ref[i];
-            results.push(this.bOrder(child));
-          }
-          return results;
-        } else {
-          return obj.renderOrder = -1;
-        }
       };
 
       return ShowCase;
@@ -1301,12 +1155,187 @@ define("../bower_components/almond/almond", function(){});
 }).call(this);
 
 (function() {
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  define('engine',['controls', 'utils', 'showcase'], function(Controls, Utils, ShowCase) {
+    var Engine;
+    return Engine = (function(superClass) {
+      extend(Engine, superClass);
+
+      function Engine() {
+        this.rotateCameraLeft = bind(this.rotateCameraLeft, this);
+        this.nextCamera = bind(this.nextCamera, this);
+        this.addToScene = bind(this.addToScene, this);
+        this.event = new CustomEvent('render', {});
+        this._initialize();
+        this.camAngle = 0;
+        this._initializeCameras();
+        this._initializeSpotilights();
+        this.controls = new Controls(this.renderer.domElement, this);
+        this.run();
+      }
+
+      Engine.prototype.addToScene = function(obj) {
+        if (obj.addToScene instanceof Function) {
+          obj.addEventListener('newObject', (function(_this) {
+            return function(event) {
+              return _this.addToScene(event.detail);
+            };
+          })(this));
+          obj.addEventListener('removeObject', (function(_this) {
+            return function(event) {
+              return _this.removeFromScene(event.detail);
+            };
+          })(this));
+          obj.addToScene((function(_this) {
+            return function(object) {
+              return _this.scene.add(object);
+            };
+          })(this));
+          return;
+        }
+        return this.scene.add(obj);
+      };
+
+      Engine.prototype.removeFromScene = function(obj) {
+        this.scene.remove(obj);
+        console.log('удаляю');
+        return console.dir(obj);
+      };
+
+      Engine.prototype.nextCamera = function() {
+        if (this.currentCamera < this.cameraPositions.length - 1) {
+          this.currentCamera++;
+        } else {
+          this.currentCamera = 0;
+        }
+        this.camera.position.x = this.cameraPositions[this.currentCamera].x;
+        this.camera.position.y = this.cameraPositions[this.currentCamera].y;
+        this.camera.position.z = this.cameraPositions[this.currentCamera].z;
+        return this.camera.lookAt(this.scene.position);
+      };
+
+      Engine.prototype.moveCamera = function(y) {
+        return this.camera.position.y += y;
+      };
+
+      Engine.prototype.rotateCameraLeft = function() {
+        var radius;
+        radius = Math.pow(this.camera.position.x * this.camera.position.x + this.camera.position.y * this.camera.position.y + this.camera.position.z * this.camera.position.z, 1 / 2);
+        radius = Math.round(radius);
+        console.dir(radius);
+        this.camera.position.y = 10;
+        this.camera.position.x = radius * Math.cos(this.camAngle);
+        this.camera.position.z = radius * Math.sin(this.camAngle);
+        console.dir('x: ' + this.camera.position.x);
+        console.dir('y: ' + this.camera.position.y);
+        console.dir('z: ' + this.camera.position.z);
+        this.camAngle += 10..toRadians();
+        return this.camera.lookAt(this.scene.position);
+      };
+
+      Engine.prototype.getCloserShowCase = function(position) {
+        var currentShowCase, i, len, minDistance, ref, showcase;
+        currentShowCase = null;
+        minDistance = null;
+        ref = this.scene.children;
+        for (i = 0, len = ref.length; i < len; i++) {
+          showcase = ref[i];
+          if (showcase instanceof ShowCase) {
+            if (minDistance === null || minDistance > Utils.getDistance(position, showcase.place)) {
+              currentShowCase = showcase;
+              minDistance = Utils.getDistance(position, showcase.place);
+            }
+          }
+        }
+        return currentShowCase;
+      };
+
+      Engine.prototype.viewObject = function(object) {
+        var correction, sizes, viewAngle;
+        correction = -5;
+        viewAngle = (this.camera.fov / 2).toRadians();
+        sizes = Utils.getObjectSize(object);
+        this.camera.position.z = object.position.z;
+        this.camera.position.y = object.position.y;
+        this.camera.position.x = object.position.x - sizes.x / 2 + correction - (Math.cos(viewAngle) * sizes.y / 2) / Math.sin(viewAngle);
+        return this.camera.lookAt(object.position);
+      };
+
+      Engine.prototype.run = function() {
+        var renderScene;
+        renderScene = (function(_this) {
+          return function() {
+            _this.dispatchEvent(_this.event);
+            requestAnimationFrame(renderScene);
+            return _this.renderer.render(_this.scene, _this.camera);
+          };
+        })(this);
+        return renderScene();
+      };
+
+      Engine.prototype._initialize = function() {
+        this.scene = new THREE.Scene;
+        this.renderer = new THREE.WebGLRenderer;
+        this.renderer.setClearColor(0xEEEEEE);
+        this.renderer.setSize(document.body.clientWidth, document.body.clientHeight);
+        return document.body.appendChild(this.renderer.domElement);
+      };
+
+      Engine.prototype._initializeSpotilights = function() {
+        var spotlight;
+        spotlight = new THREE.AmbientLight(0xffffff);
+        spotlight.position.set(-60, 30, -10);
+        this.scene.add(spotlight);
+        spotlight.position.set(32, 30, 0);
+        return this.scene.add(spotlight);
+      };
+
+      Engine.prototype._initializeCameras = function() {
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.x = -30;
+        this.camera.position.y = 40;
+        this.camera.position.z = 30;
+        this.camera.lookAt(this.scene.position);
+        this.cameraDistance = {
+          x: 50,
+          y: 50,
+          z: 50
+        };
+        this.cameraPositionValues = {
+          'LeftFront': new THREE.Vector3(-this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z),
+          'Front': new THREE.Vector3(0, this.cameraDistance.y, this.cameraDistance.z),
+          'RightFront': new THREE.Vector3(this.cameraDistance.x, this.cameraDistance.y, this.cameraDistance.z)
+        };
+        this.cameraPositions = [this.cameraPositionValues.LeftFront, this.cameraPositionValues.Front, this.cameraPositionValues.RightFront];
+        return this.currentCamera = 0;
+      };
+
+      Engine.prototype._addAxes = function(size) {
+        this.axes = new THREE.AxisHelper(size);
+        return this.scene.add(this.axes);
+      };
+
+      return Engine;
+
+    })(THREE.EventDispatcher);
+  });
+
+}).call(this);
+
+(function() {
   require(['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border'], function(Engine, physicalObject, Utils, Materials, ShowCase, Border) {
-    var changeDoor, engine, i, obj;
+    var changeDoor, engine, i, obj, obj2;
     engine = new Engine;
     i = 20;
-    obj = new ShowCase(new Utils.place(0, 0, -5), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
+    obj = new ShowCase(new Utils.place(0, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
     engine.addToScene(obj);
+    obj2 = new ShowCase(new Utils.place(20, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
+    engine.addToScene(obj2);
+    obj2 = new ShowCase(new Utils.place(-20, 0, 0), new Utils.size(20, 60, 10), Materials.glass, Materials.glass, 10, 3, Materials.panel);
+    engine.addToScene(obj2);
     obj.addShelf(10);
     document.getElementById('changeCamera').onclick = function() {
       return engine.nextCamera();
@@ -1332,12 +1361,14 @@ define("../bower_components/almond/almond", function(){});
       });
     };
     document.getElementById('addShowCase').onclick = function() {
-      var obj2;
-      obj2 = new ShowCase(new Utils.place(0, 0, i), new Utils.place(10, 60, 20), Materials.glass);
-      engine.addToScene(obj2);
-      return engine.controls.createControllableObject(obj2, function(showcase) {
-        console.dir(showcase);
-        return engine.addToScene(showcase);
+      var bord;
+      bord = new Border(new Utils.place(0, 0, 0), new Utils.size(20, 1, 10), Materials.glass);
+      bord.bOrder(bord);
+      engine.addToScene(bord);
+      return engine.controls.createControllableObject(bord, function(shelf) {
+        var showcase;
+        showcase = engine.getCloserShowCase(bord.position);
+        return showcase.addShelf(shelf.position.y + obj.size.y / 2);
       });
     };
     document.getElementById('openDoor').onclick = function() {

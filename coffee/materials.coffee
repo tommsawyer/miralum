@@ -1,9 +1,9 @@
-define ['engine'], (Engine) ->
-	glassTexture = THREE.ImageUtils.loadTexture  '../img/blueGlass.jpg', undefined, Engine.renderer
+define [], ->
+	glassTexture = THREE.ImageUtils.loadTexture  '../img/blueGlass.jpg', undefined
 	glassTexture.minFilter = THREE.LinearFilter
-	woodTexture = THREE.ImageUtils.loadTexture  '../img/wood.jpg', undefined, Engine.renderer
+	woodTexture = THREE.ImageUtils.loadTexture  '../img/wood.jpg', undefined
 	woodTexture.minFilter = THREE.LinearFilter
-	panelTexture = THREE.ImageUtils.loadTexture  '../img/pan.jpg', undefined, Engine.renderer
+	panelTexture = THREE.ImageUtils.loadTexture  '../img/pan.jpg', undefined
 	panelTexture.minFilter = THREE.LinearFilter
 	{
 		'glass' :  new THREE.MeshLambertMaterial({

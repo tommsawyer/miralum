@@ -1,8 +1,12 @@
 require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border'], (Engine, physicalObject, Utils, Materials, ShowCase, Border) ->
 	engine = new Engine
 	i = 20
-	obj = new ShowCase new Utils.place(0,0,-5), new Utils.size(20,60,10), Materials.glass, Materials.glass, 10, 3, Materials.panel
+	obj = new ShowCase new Utils.place(0,0,0), new Utils.size(20,60,10), Materials.glass, Materials.glass, 10, 3, Materials.panel
 	engine.addToScene obj
+	obj2 = new ShowCase new Utils.place(20,0,0), new Utils.size(20,60,10), Materials.glass, Materials.glass, 10, 3, Materials.panel
+	engine.addToScene obj2
+	obj2 = new ShowCase new Utils.place(-20,0,0), new Utils.size(20,60,10), Materials.glass, Materials.glass, 10, 3, Materials.panel
+	engine.addToScene obj2
 	obj.addShelf 10
 
 	document.getElementById('changeCamera').onclick = ->
@@ -27,11 +31,12 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border']
 				obj.addShelf (shelf.position.y + obj.size.y / 2)
 
 	document.getElementById('addShowCase').onclick = ->
-		obj2 = new ShowCase new Utils.place(0,0,i), new Utils.place(10,60,20), Materials.glass
-		engine.addToScene obj2
-		engine.controls.createControllableObject obj2, (showcase) ->
-			console.dir showcase
-			engine.addToScene showcase
+		bord = new Border(new Utils.place(0,0,0), new Utils.size(20,1,10), Materials.glass)
+		bord.bOrder(bord)
+		engine.addToScene bord
+		engine.controls.createControllableObject bord, (shelf) ->
+			showcase = engine.getCloserShowCase(bord.position)
+			showcase.addShelf(shelf.position.y + obj.size.y / 2)
 
 	document.getElementById('openDoor').onclick = ->
 		do obj.borders["frontBorder"].open

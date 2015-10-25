@@ -165,6 +165,7 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@addChildrenObject.call @, @borders.frontBorder
 
 		addShelf: (height) ->
+			height = Math.min(Math.max(0, height), @size.y - @topStorageHeight)
 			@shelfs.push new Border(
 					new Utils.place(@place.x, @place.y + height - @size.y /2, @place.z), 
 					new Utils.size(@size.x, @borderWidth, @size.z),
@@ -172,10 +173,3 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 				)
 			@bOrder @shelfs.last()
 			@addChildrenObject.call @, @shelfs.last()
-
-		bOrder: (obj) =>
-			if obj.children.length > 0
-				for child in obj.children
-					@bOrder child
-			else
-				obj.renderOrder = -1

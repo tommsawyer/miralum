@@ -40,4 +40,10 @@ define ['materials', 'dimension'], (Materials, Dimension) ->
 
 		getMesh: ->
 			@
-			
+		
+		bOrder: (obj) =>
+			if obj.children.length > 0
+				for child in obj.children
+					@bOrder child
+			else
+				obj.renderOrder = -1

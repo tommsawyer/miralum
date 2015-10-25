@@ -73,18 +73,19 @@ define ['utils', 'interface'], (Utils, Interface) ->
 			if @controllableObject
 				vector = @mouse.unproject @engine.camera
 				dir = do vector.sub(@engine.camera.position).normalize
-				distance = - @engine.camera.position.x / dir.x
+				distance = - @engine.camera.position.z / dir.z
 				pos = @engine.camera.position.clone().add dir.multiplyScalar(distance)
 
-				@controllableObject.position.z = pos.z
+				@controllableObject.position.x = pos.x
 				@controllableObject.position.y = pos.y
 
 		createControllableObject: (object, callback) ->
 			@state.activeState = 'controlObject'
 			@controllableObject = object
 
-			@addEventListener 'remove', (event) ->
+			@addEventListener 'remove', listener = (event) ->
 				callback event.detail
+				@removeEventListener 'remove', listener
 
 		removeControllableObject: =>
 			event = new CustomEvent 'remove', {
