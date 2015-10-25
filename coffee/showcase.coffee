@@ -164,12 +164,15 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 					container = @borders
 				when "storageTop" 
 					container = @storageStands.topStorage
+					if container.size.y < 600
+						return
 				when "storageBottom" 
 					container = @storageStands.bottomStorage
+					if container.size.y < 600
+						return
 			borderPlace = new THREE.Vector3(container.frontBorder.place.x, container.frontBorder.place.y, container.frontBorder.place.z)
 			borderSize = new THREE.Vector3(container.frontBorder.size.x, container.frontBorder.size.y, container.frontBorder.size.z)
 			doorMaterial = container.frontBorder.material
-			#door = container.frontBorder
 			@removeChildrenObject container.frontBorder
 			container.frontBorder = new Door(
 					new Utils.place(borderPlace.x, borderPlace.y, borderPlace.z), 

@@ -7,16 +7,16 @@ define [], ->
 			@blockHeight = document.getElementById('blockHeight')
 
 			document.getElementById('openDoor').onclick = =>
-				do @activeShowCase.storageStands.bottomStorage['frontBorder'].open
+				do @activeShowCase.borders['frontBorder'].open
 
 			document.getElementById('closeDoor').onclick = =>
-				do @activeShowCase.storageStands.bottomStorage['frontBorder'].close
+				do @activeShowCase.borders['frontBorder'].close
 
 			document.getElementById('typeDoor').onchange = =>
-				@activeShowCase.changeDoor "storageBottom", document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
+				@activeShowCase.changeDoor "border", document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
 
 			document.getElementById('countDoor').onchange = =>
-				@activeShowCase.changeDoor "storageBottom", document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
+				@activeShowCase.changeDoor "border", document.getElementById('typeDoor').value, +document.getElementById('countDoor').value
 		
 
 		openDoor: ->
