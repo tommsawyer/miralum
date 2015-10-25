@@ -106,17 +106,17 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 			@scene.add spotlight
 
 		_initializeCameras: ->
-			@camera = new THREE.PerspectiveCamera 75, window.innerWidth / window.innerHeight, 0.1, 5000
-			@camera.position.x = -800
-			@camera.position.y = 2000
-			@camera.position.z = 1500
-			@camera.lookAt @scene.position
-
 			@cameraDistance = {
 				x: 1000,
-				y: 2000,
+				y: 1500,
 				z: 1500
 			}
+
+			@camera = new THREE.PerspectiveCamera 75, window.innerWidth / window.innerHeight, 0.1, 5000
+			@camera.position.x = -@cameraDistance.x
+			@camera.position.y = @cameraDistance.y
+			@camera.position.z = @cameraDistance.z
+			@camera.lookAt @scene.position
 
 			@cameraPositionValues = {
 				'LeftFront': new THREE.Vector3(-@cameraDistance.x, @cameraDistance.y, @cameraDistance.z),

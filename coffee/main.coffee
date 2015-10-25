@@ -37,6 +37,8 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border',
 	document.getElementById('rotateRight').onclick = ->
 
 	engine.addEventListener("render", -> do obj.borders["frontBorder"].moving)
+	engine.addEventListener("render", -> do obj.storageStands.topStorage["frontBorder"].moving)
+	engine.addEventListener("render", -> do obj.storageStands.bottomStorage["frontBorder"].moving)
 	# engine.addEventListener("render", -> do obj2.borders["frontBorder"].moving)
 	# engine.addEventListener("render", -> do obj3.borders["frontBorder"].moving)
 	

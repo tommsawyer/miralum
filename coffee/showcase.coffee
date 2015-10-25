@@ -53,11 +53,14 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 							@storageMaterial,
 							"xy"
 						),
-					'frontBorder': new Border(
+					'frontBorder': new Door(
 							new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y, @bottomStoragePlace.z + @size.z / 2 - @borderWidth / 2), 
 							new Utils.size(@size.x, @bottomStorageHeigth, @borderWidth),
 							@storageMaterial,
-							"xy"
+							"xy",
+							"Left",
+							"border",
+							false
 						),
 					'bottomBorder': new Border(
 					 		new Utils.place(@bottomStoragePlace.x, @bottomStoragePlace.y - @bottomStorageHeigth / 2 + @borderWidth / 2, @bottomStoragePlace.z), 
@@ -85,11 +88,14 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 							@storageMaterial,
 							"xy"
 						),
-					'frontBorder': new Border(
+					'frontBorder': new Door(
 							new Utils.place(@topStoragePlace.x, @topStoragePlace.y, @topStoragePlace.z + @size.z / 2 - @borderWidth / 2), 
 							new Utils.size(@size.x, @topStorageHeight, @borderWidth),
 							@storageMaterial,
-							"xy"
+							"xy",
+							"Left",
+							"border",
+							false
 						),
 					'topBorder': new Border(
 					 		new Utils.place(@topStoragePlace.x, @topStoragePlace.y + @topStorageHeight / 2 - @borderWidth / 2, @topStoragePlace.z), 
@@ -104,7 +110,7 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			# Обмотка краев
 			winding = (border, width) =>
 				borderWinding = new THREE.Object3D
-				depth = 0.1
+				depth = 10
 				for kx in [-1..1]
 					for ky in [-1..1]
 						for kz in [-1..1]
@@ -152,17 +158,28 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 			@add winding @borders[borderName], windingWidth for borderName in Object.keys @borders
 			@add winding @storageStands[storageName][ind2], windingWidth for ind2 in Object.keys @storageStands[storageName] for storageName in Object.keys @storageStands
 
-		changeDoor: (type, isDouble) =>
-			@removeChildrenObject @borders.frontBorder
-			@borders.frontBorder = new Door(
-					new Utils.place(0, 0, @size.z / 2), 
-					new Utils.size(@size.x, @size.y, @borderWidth),
-					@borderMaterial,
+		changeDoor: (doorContainer, type, isDouble) =>
+			switch doorContainer
+				when "border" 
+					container = @borders
+				when "storageTop" 
+					container = @storageStands.topStorage
+				when "storageBottom" 
+					container = @storageStands.bottomStorage
+			borderPlace = new THREE.Vector3(container.frontBorder.place.x, container.frontBorder.place.y, container.frontBorder.place.z)
+			borderSize = new THREE.Vector3(container.frontBorder.size.x, container.frontBorder.size.y, container.frontBorder.size.z)
+			doorMaterial = container.frontBorder.material
+			#door = container.frontBorder
+			@removeChildrenObject container.frontBorder
+			container.frontBorder = new Door(
+					new Utils.place(borderPlace.x, borderPlace.y, borderPlace.z), 
+					new Utils.size(borderSize.x, borderSize.y, @borderWidth),
+					doorMaterial,
 					"xy",
 					"Left",
 					type,
 					isDouble)
-			@add @borders.frontBorder
+			@add container.frontBorder
 
 		changeSize: (size) =>
 			@removeChildrenObject @
