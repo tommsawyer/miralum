@@ -32,7 +32,7 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border',
 			showcase.addShelf(shelf.position.y + obj.size.y / 2)
 
 	document.getElementById('rotateLeft').onclick = ->
-		do engine.rotateCameraLeft
+		engine.rotateCamera -5
 		
 	document.getElementById('rotateRight').onclick = ->
 
@@ -41,4 +41,4 @@ require ['engine', 'physicalObject', 'utils', 'materials', 'showcase', 'border',
 	engine.addEventListener("render", -> do obj.storageStands.bottomStorage["frontBorder"].moving)
 	# engine.addEventListener("render", -> do obj2.borders["frontBorder"].moving)
 	# engine.addEventListener("render", -> do obj3.borders["frontBorder"].moving)
-	
+	console.dir obj.getParts()

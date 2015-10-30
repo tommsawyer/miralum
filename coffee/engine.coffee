@@ -7,7 +7,7 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 			@event = new CustomEvent 'render', {
 				}
 
-
+			@lastAngle = 0
 			do @_initialize
 			@camAngle = 0
 			do @_initializeCameras
@@ -34,9 +34,6 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 			# 	@removeFromScene child for child in obj.children
 
 			@scene.remove obj
-			console.log 'удаляю'
-			console.dir obj
-
 
 		nextCamera: =>
 			if @currentCamera < @cameraPositions.length - 1 then @currentCamera++ else  @currentCamera = 0
@@ -60,6 +57,20 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 		# 	console.dir 'z: ' + @camera.position.z
 		# 	@camAngle += 10.toRadians()
 		# 	@camera.lookAt(@scene.position)
+
+		rotateCamera: (angleDegrees) =>
+			cameraPosition = new Utils.place(
+				@camera.position.x,
+				0,
+				@camera.position.z
+			)
+			distance = Utils.getDistance cameraPosition, @scene.position
+			angle = @lastAngle + angleDegrees.toRadians()
+			#console.log  Math.acos((@camera.position.x * @camera.position.x + @camera.position.z*@camera.position.z) / (distance * Math.sqrt(@camera.position.x * @camera.position.x + @camera.position.z * @camera.position.z)))
+			@camera.position.z = distance * Math.cos angle
+			@camera.position.x = distance * Math.sin angle
+			@lastAngle = angle
+			@camera.lookAt @scene.position
 
 		getCloserShowCase: (position) ->
 			currentShowCase = null
@@ -109,7 +120,7 @@ define ['controls', 'utils', 'showcase'], (Controls, Utils, ShowCase) ->
 			@cameraDistance = {
 				x: 1000,
 				y: 1500,
-				z: 1500
+				z: 0
 			}
 
 			@camera = new THREE.PerspectiveCamera 75, window.innerWidth / window.innerHeight, 0.1, 5000

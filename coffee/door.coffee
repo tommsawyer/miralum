@@ -97,3 +97,10 @@ define ['physicalObject', 'border', 'utils'], (physicalObject, Border, Utils) ->
 						@angle = 0
 						@currentState = @doorState.closed
 	
+		getParts: ->
+			{
+				size: @size,
+				material: @material,
+				isDouble: @isDouble,
+				type: @openingType
+		}

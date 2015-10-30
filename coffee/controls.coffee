@@ -3,7 +3,7 @@ define ['utils', 'interface', 'showcase'], (Utils, Interface, ShowCase) ->
 		constructor: (@canvas, @engine) ->
 			@raycaster = new THREE.Raycaster
 			@canvas.addEventListener 'mousemove', @onMouseMove, false
-			@canvas.addEventListener 'mousedown', @onMouseClick, false
+			@canvas.addEventListener 'mousedown', @onMouseDown, false
 			@mouse = new THREE.Vector3
 
 			@state = {
@@ -30,11 +30,13 @@ define ['utils', 'interface', 'showcase'], (Utils, Interface, ShowCase) ->
 				opacity: 0.3
 				}	
 
-		onMouseClick: (event) =>
+		onMouseDown: (event) =>
 			do @state[@state.activeState].mouseClick
 
 		onMouseMove: (event) =>
 			do event.preventDefault
+
+			@engine.rotateCamera event.movementX * 0.2 if event.which
 
 			@mouse.x = ( event.clientX / @canvas.width ) * 2 - 1
 			@mouse.y = - ( event.clientY / @canvas.height ) * 2 + 1.3

@@ -6,3 +6,9 @@ define ['physicalObject','engine'], (physicalObject, Engine) ->
 			#showCaseMaterial = @material
 
 			@add new THREE.Mesh @showCaseGeometry, @material
+
+		getParts: ->
+			{
+				size: @size,
+				material: @material
+			}

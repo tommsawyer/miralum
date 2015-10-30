@@ -7,6 +7,12 @@ define [], ->
 
 	class Calculations
 		constructor: (configurationFile)->
+			request = new XMLHttpRequest
+
+			request.open 'GET', '../config/configurationTable.json', true
+			request.onload= (event)->
+				@config = JSON.parse this.responseText
+			do request.send
 		
 		getGlassCost: (thickness, width, height, grinding, polishing) ->
 			square = width.toMetres() * height.toMetres()

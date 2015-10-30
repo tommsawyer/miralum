@@ -223,3 +223,14 @@ define ['utils', 'border', 'physicalObject','materials', 'dimension', 'door'], (
 				)
 			@bOrder @shelfs.last()
 			@addChildrenObject.call @, @shelfs.last()
+
+		addPart:(arg) ->
+			for in arg
+				arrParts.push config[arg]
+
+		getParts: ->
+			details = []
+			console.log @children
+			details.push @borders[border].getParts() for border in Object.keys(@borders)
+			details.push shelf.getParts() for shelf in @shelfs
+			details
